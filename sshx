@@ -1,0 +1,19 @@
+#!/bin/bash
+# simple wrapper to run ssh with or without -X and DISPLAY set
+# based on whether X11 is running or not
+# Only known to work on Mac OS X (relies on bsd ps and apple's X
+
+# attempt to dig out display from X11 app args
+# This should come back with either :0 or empty
+d=`ps -xwww | sed -n -e 's/^.*\/X11 -auth .* \(:[0-9][0-9]*\)$/\1/p'`
+
+unset x
+
+if [ -n "${d}" ]; then
+     # got d=:0, so set DISPLAY and use ssh -Y
+     export DISPLAY=${d}
+    x="-Y"
+fi
+
+# experiment - maybe ipv6 isnt too good thru our network (or the switch under my desk?)
+ssh -4 ${x} "${@}"

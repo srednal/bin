@@ -1,0 +1,9 @@
+#!/bin/sh
+#
+# jasmin - runs the Jasmin assembler
+# 
+# Usage:
+#     jasmin [-d <directory>] <filename> [<filename> ...]
+#
+
+java -jar $HOME/lib/jasmin-2.4/jasmin.jar $*

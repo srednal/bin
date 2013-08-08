@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ `uname -s` = "Darwin" ]; then
+    JAVA_EXEC=/usr/bin/java
+else
+    JAVA_EXEC=/opt/java/jre/bin/java
+fi
+
+BCEL=${HOME}/lib/bcel-5.2
+
+java -classpath ${CLASSPATH}:${BCEL}/examples:${BCEL}/bcel-5.2.jar JasminVisitor $*

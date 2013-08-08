@@ -1,0 +1,3 @@
+#!/bin/sh
+osascript -e 'tell application "Mail" to quit'
+sqlite3 ~/Library/Mail/V2/MailData/Envelope\ Index vacuum;
