@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id: //depot/dev/sandbox/landers/home/bin/p4openzip#16 $ 
 
 #############################################################################
 # Zip [or unzip - see below] all p4 open files
@@ -12,7 +11,7 @@
 #
 # The files in the zip will be relative to the client root directory
 #
-# Each zip file will also contain copies of the output from p4 opened and 
+# Each zip file will also contain copies of the output from p4 opened and
 # p4 client -o for the changelist.
 # The "all" zip will contain all these changelist descriptions.
 #
@@ -48,12 +47,12 @@ if [ "${1}" = "-unzip" ]; then
     #
     # fixup relative path
     archive=`echo "${2}" | sed -e "s,^\([^/]\),${PWD}/\1,"`
-    
+
     if [ ! -f "${archive}" ]; then
         echo "File not found: ${archive}"
         exit 1
     fi
-    
+
     # test that this is a new p4openzip archive with the P4_WHERE file
     if unzip -Z "${archive}" P4_WHERE.txt >/dev/null 2>&1; then
         # all is well
@@ -63,7 +62,7 @@ if [ "${1}" = "-unzip" ]; then
         echo "properly handle unzip.  You need to update and rebuild the zip file."
         exit 1
     fi
-    
+
     # Extract files from changelist within archive
     change=`basename "${archive}" | sed -e 's/^p4open_\(.*\)\.zip$/\1/'`
 
@@ -91,12 +90,12 @@ if [ "${1}" = "-unzip" ]; then
     cd ${rootdir}
 
 	# Before doing anything, check that we are at the same version for each file
-    # note - the filelist is depot file paths  
+    # note - the filelist is depot file paths
     for f in ${filelist}; do
-    
+
         # get the action from the ALL changelist
         action=`unzip -p "${archive}" P4_OPENED_ALL.txt | sed -n -e "s,^${f}#[0-9][0-9]* - \([^ ]*\) .*,\1,p"`
-		
+
         case "${action}" in
             delete|edit|integrate)
                 # get version from the ALL list so we can check for resolves
@@ -116,10 +115,10 @@ if [ "${1}" = "-unzip" ]; then
 
     # now do the checkouts
     for f in ${filelist}; do
-    
+
         # get the action from the ALL changelist
         action=`unzip -p "${archive}" P4_OPENED_ALL.txt | sed -n -e "s,^${f}#[0-9][0-9]* - \([^ ]*\) .*,\1,p"`
-		
+
         case "${action}" in
             delete)
                 p4 delete "${f}"
@@ -139,7 +138,7 @@ if [ "${1}" = "-unzip" ]; then
                 ;;
         esac
     done
-        
+
     # extract the files
 
 
@@ -158,7 +157,7 @@ mkdir ${tmpdir}
 allopen=${tmpdir}/P4_OPENED_ALL.txt
 
 # Construct a file containing just the file names and their changelist #
-# Getting changelists from p4 open (rather than p4 changes) 
+# Getting changelists from p4 open (rather than p4 changes)
 # means we include the default changelist and eliminate empty ones
 # and those including only files outside PWD
 # Out from p4 opened is like:
@@ -223,7 +222,7 @@ function zipcmd()
     shift
 
     [ -e ${zipfile} ] && mv ${zipfile} ${zipfile}.old
-    
+
     zip -q ${zipfile} -@ -j ${*}
     echo Created ${zipfile}
 }
@@ -232,7 +231,7 @@ function mkzip()
 {
     # has (possibly grep'ed) output from $depotfiles on stdin
     # $1 is zip file name, rest of args are "manifest" files
-            
+
     # pump the depot filenames thru p4 where to find out
     # where they live on the client.
     # when given a depot file, p4 where burps up something like:
@@ -253,7 +252,7 @@ for change in ${changelists}; do
 
     # Make a manifest file for the changelist to describe the contents
     mf=${tmpdir}/P4_CHANGE_${change}.txt
-    
+
     if [ "${change}" != "default" ]; then
         # manifest contains p4 change
         p4 change -o ${change} | grep -v '^#' > ${mf}
@@ -264,7 +263,7 @@ for change in ${changelists}; do
         p4 opened | egrep "^.* default change .*$" > ${mf}
     fi
 
-    # If the only changelist is default, then don't make a 
+    # If the only changelist is default, then don't make a
     # special zip for it (it will be in all), but if the change
     # is numbered then make a zip for it (and all).
     if [ ${numchangelists} -ne 1 -o "${change}" != "default" ]; then

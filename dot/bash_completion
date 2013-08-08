@@ -1,0 +1,1123 @@
+# bash_completion
+
+if [ -f /usr/local/git/contrib/completion/git-completion.bash  ]; then
+        . /usr/local/git/contrib/completion/git-completion.bash 
+fi
+
+
+# Turn on extended globbing and programmable completion
+shopt -s extglob progcomp
+
+######################################################################## vars
+
+# Set a couple of useful vars
+#
+UNAME=$( uname -s )
+# strip OS type and version under Cygwin (e.g. CYGWIN_NT-5.1 => Cygwin)
+UNAME=${UNAME/CYGWIN_*/Cygwin}
+
+# features supported by bash 2.05 and higher
+if [ ${BASH_VERSINFO[0]} -eq 2 ] && [[ ${BASH_VERSINFO[1]} > 04 ]] ||
+   [ ${BASH_VERSINFO[0]} -gt 2 ]; then
+	declare -r bash205=$BASH_VERSION 2>/dev/null
+	default="-o default"
+	dirnames="-o dirnames"
+	filenames="-o filenames"
+fi
+# features supported by bash 2.05b and higher
+if [ ${BASH_VERSINFO[0]} -eq 2 ] && [[ ${BASH_VERSINFO[1]} = "05b" ]] ||
+   [ ${BASH_VERSINFO[0]} -gt 2 ]; then
+	declare -r bash205b=$BASH_VERSION 2>/dev/null
+	nospace="-o nospace"
+fi
+
+######################################################################## basics
+
+# Make directory commands see only directories
+complete -d pushd
+
+complete -o dirnames -f -X '!*.?(t)bz2' bunzip2 bzcat bzcmp bzdiff bzegrep bzfgrep bzgrep
+complete -o dirnames -f -X '!*.@(zip|ZIP|jar|JAR|exe|EXE|pk3|war|wsz|ear|zargo|xpi|sxw|bin)' unzip zipinfo
+complete -o dirnames -f -X '*.Z' compress znew
+complete -o dirnames -f -X '!*.@(Z|gz|tgz|Gz|dz)' gunzip zcmp zdiff zcat zegrep zfgrep zgrep zless zmore
+complete -o dirnames -f -X '!*.Z' uncompress
+
+
+# user commands see only users
+complete -u su usermod userdel passwd chage write chfn groups slay w
+
+# group commands see only groups
+complete -g groupmod groupdel newgrp 2>/dev/null
+
+# bg completes with stopped jobs
+complete -A stopped -P '%' bg
+
+# other job commands
+complete -j -P '%' fg jobs disown
+
+# readonly and unset complete with shell variables
+complete -v readonly unset
+
+# set completes with set options
+complete -A setopt set
+
+# shopt completes with shopt options
+complete -A shopt shopt
+
+# helptopics
+complete -A helptopic help
+
+# unalias completes with aliases
+complete -a unalias
+
+# bind completes with readline bindings (make this more intelligent)
+complete -A binding bind
+
+# type and which complete on commands
+complete -c command type which
+
+# builtin completes on builtins
+complete -b builtin
+
+
+######################################################################## functions
+
+# This function performs file and directory completion. It's better than
+# simply using 'compgen -f', because it honours spaces in filenames.
+# If passed -d, it completes only on directories. If passed anything else,
+# it's assumed to be a file glob to complete on.
+#
+_filedir()
+{
+	local IFS=$'\t\n' xspec
+
+	_expand || return 0
+
+	if [ "${1:-}" = -d ]; then
+		COMPREPLY=( ${COMPREPLY[@]:-} $( compgen -d -- $cur ) )
+		return 0
+	fi
+
+	xspec=${1:+"!*.$1"}	# set only if glob passed in as $1
+	COMPREPLY=( ${COMPREPLY[@]:-} $( compgen -f -X "$xspec" -- "$cur" ) \
+		    $( compgen -d -- "$cur" ) )
+}
+
+
+# This function expands tildes in pathnames
+#
+_expand()
+{
+	[ "$cur" != "${cur%\\}" ] && cur="$cur\\"
+
+	# expand ~username type directory specifications
+	if [[ "$cur" == \~*/* ]]; then
+		eval cur=$cur
+		
+	elif [[ "$cur" == \~* ]]; then
+		cur=${cur#\~}
+		COMPREPLY=( $( compgen -P '~' -u $cur ) )
+		return ${#COMPREPLY[@]}
+	fi
+}
+
+
+######################################################################## p4
+
+
+# p4not completes with dirs
+complete -d -W --help p4not
+
+complete -W "//depot/dev/src_wlp/...@last_clean_portal_platform_src_wlp" p4sync
+
+
+
+_p4openzip()
+{
+	local cur prev
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	if [ $COMP_CWORD -eq 1 ]; then
+		COMPREPLY=( $( compgen -W "-unzip" -- $cur ) )
+	elif [ $COMP_CWORD -eq 2 ]; then
+		case "$prev" in
+		-unzip)
+	           COMPREPLY=( $( compgen -f -X "!?(*/)p4open_*.zip" -- "$cur" ) \
+		               $( compgen -d -- "$cur" ) )
+			;;
+		*)
+			;;
+                esac
+       fi
+       return 0
+}
+complete -F _p4openzip p4openzip
+
+_p4changes()
+{
+    local p4client wd p4changes
+    p4client="${P4CLIENT}"
+    # need to know p4 client for p4 changes and it might be in p4config
+    if [ -z "${P4CLIENT}" -a -n "${P4CONFIG}" ]; then
+        # p4config is either full path or relative (in some parent dir)
+        echo "${P4CONFIG}" | grep -q -v '^/'
+        if echo "${P4CONFIG}" | grep -q '^/'; then
+            p4client=`sed -n -e 's/^P4CLIENT=//p' "${P4CONFIG}"`
+        else
+            # search up
+            wd=${PWD}
+            while [ "${wd}" != "/" ]; do
+                if [ -f "${wd}/${P4CONFIG}" ]; then
+                    p4client=`sed -n -e 's/^P4CLIENT=//p' "${wd}/${P4CONFIG}"`
+                    break
+                fi
+                # up a directory
+                wd=`dirname ${wd}`
+            done
+        fi
+    fi
+
+    # get pending changes
+   p4changes=`p4 changes -s pending -c ${p4client} | cut -d' ' -f2`
+   COMPREPLY=( ${COMPREPLY[@]:-} $( compgen -W "$p4changes" -- "$cur" ) )
+   return 0
+}
+complete -F _p4changes p4default2change
+
+# Perforce completion by Frank Cusack <frank@google.com>
+# - changed a bit to get rid of superuser commands and stuff
+_p4()
+{
+	local cur prev prev2 p4commands p4filetypes p4helpcmds p4changes
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	# extra commands for p4 help
+	p4helpcmds="simple commands charset \
+	        environment filetypes jobview revisions \
+		usage views admin counter counters depot \
+		fix fixes group groups job jobs jobspec  login  logout obliterate \
+		protect rename review reviews set tickets triggers \
+		typemap user users verify"
+
+	p4commands="add branch branches change changes client \
+		clients delete depots describe \
+		diff diff2 dirs edit filelog files flush \
+		fstat have help info integrate integrated \
+		label labels labelsync lock login logout \
+		monitor opened passwd print reopen resolve \
+		resolved revert submit sync tickets \
+		unlock user users where"
+	
+	p4filetypes="ctext cxtext ktext kxtext ltext tempobj ubinary \
+		uresource uxbinary xbinary xltext xtempobj xtext \
+		text binary resource"
+
+	if [ $COMP_CWORD -eq 1 ]; then
+		COMPREPLY=( $( compgen -W "$p4commands" -- $cur ) )
+	elif [ $COMP_CWORD -eq 2 ]; then
+		case "$prev" in
+		help)
+			COMPREPLY=( $( compgen -W "$p4helpcmds $p4commands" -- $cur ) )
+			;;
+		admin)
+			COMPREPLY=( $( compgen -W "checkpoint stop" -- $cur ) )
+			;;
+		change)
+			_p4changes
+			;;
+		monitor)
+		    COMPREPLY=show
+		    ;;
+		*)
+			;;
+		esac
+	elif [ $COMP_CWORD -gt 2 ]; then
+                # TODO - prev2 only works for "p4 -x prev2 -c " but not "p4 -x prev2 -t foo -c "
+		prev2=${COMP_WORDS[COMP_CWORD-2]}
+		case "$prev" in
+		-t)
+			case "$prev2" in
+			add|edit|reopen)
+				COMPREPLY=( $( compgen -W "$p4filetypes" \
+					       -- $cur) )
+				;;
+			*)
+				;;
+			esac
+			;;
+		-c)
+			case "$prev2" in
+			add|edit|delete|reopen|submit)
+			        _p4changes
+				;;
+			*)
+				;;
+			esac
+			;;
+		*)
+			;;
+		esac
+	fi
+
+	return 0
+}
+complete -F _p4 -o default p4
+
+
+######################################################################## ant
+
+# ant completion
+#
+_ant()
+{
+	local cur prev buildfile i
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	case "$prev" in
+		-buildfile|-file|-f)
+			_filedir 'xml'
+			return 0
+			;;
+		-logfile|-l)
+			_filedir
+			return 0
+			;;
+	esac
+
+	if [[ "$cur" == -* ]]; then
+		# relevant options completion
+		COMPREPLY=( $( compgen -W '-help -projecthelp -version -quiet -q \
+			       -verbose -v -debug -emacs -logfile -l -logger \
+			       -listener -buildfile -file -f -D -find' -- $cur ) )
+	else
+		# available targets completion
+		# find which buildfile to use
+		buildfile=build.xml
+		for (( i=1; i < COMP_CWORD; i++ )); do
+			if [[ "${COMP_WORDS[i]}" == -buildfile ]]; then
+				buildfile=${COMP_WORDS[i+1]}
+				break
+			fi
+		done
+		[ ! -f $buildfile ] && return 0
+
+		# parse buildfile for targets
+		COMPREPLY=( $( awk -F'"' '/<target name="/ {print $2}' \
+				$buildfile | grep "^$cur" )
+			    $( awk -F"'" "/<target name='/ "'{print $2}' \
+				$buildfile | grep "^$cur" )
+			    $( awk -F'"' '/<target [^n]/ {if ($1 ~ /name=/) { print $2 } else if ($3 ~ /name=/) {print $4} else if ($5 ~ /name=/) {print $6}}' \
+				$buildfile | grep "^$cur" ) )
+	fi
+}
+complete -F _ant $filenames ant build bgbuild
+
+
+######################################################################## java
+
+# available path elements completion
+_java_path()
+{
+	cur=${cur##*:}
+	_filedir '@(jar|zip)'
+}
+
+# exact classpath determination
+_java_find_classpath()
+{
+	local i
+
+	# search first in current options
+	for (( i=1; i < COMP_CWORD; i++ )); do
+		if [[ "${COMP_WORDS[i]}" == -@(cp|classpath) ]]; then
+			classpath=${COMP_WORDS[i+1]}
+			break
+		fi
+	done
+
+	# default to environment
+	[ -z "$classpath" ] && classpath=$CLASSPATH
+
+	# default to current directory
+	[ -z "$classpath" ] && classpath=.
+}
+
+# exact sourcepath determination
+_java_find_sourcepath()
+{
+	local i
+
+	# search first in current options
+	for (( i=1; i < COMP_CWORD; i++ )); do
+		if [[ "${COMP_WORDS[i]}" == -sourcepath ]]; then
+			sourcepath=${COMP_WORDS[i+1]}
+			break
+		fi
+	done
+
+	# default to classpath
+	[ -z "$sourcepath" ] && _java_find_classpath
+	sourcepath=$classpath
+}
+
+
+# available packages completion
+_java_packages()
+{
+	local sourcepath i
+
+	# find wich sourcepath to use
+	_java_find_sourcepath
+
+	# convert package syntax to path syntax
+	cur=${cur//.//}
+	# parse each sourcepath element for packages
+	for i in ${sourcepath//:/ }; do
+		if [ -d $i ]; then
+			COMPREPLY=( ${COMPREPLY[@]} $( command ls -F -d \
+				$i/$cur* 2>/dev/null | sed -e 's|^'$i'/||' ) )
+		fi
+	done
+	# keep only packages
+	COMPREPLY=( $( echo ${COMPREPLY[@]} | tr " " "\n" | grep "/$" ) )
+	# remove packages extension
+	COMPREPLY=( ${COMPREPLY[@]%/} )
+	# convert path syntax to package syntax
+	cur=${COMPREPLY[@]//\//.}
+}
+
+
+# available classes completion
+_java_classes()
+{
+	local classpath i
+
+	# find wich classpath to use
+	_java_find_classpath
+
+	# convert package syntax to path syntax
+	cur=${cur//.//}
+	# parse each classpath element for classes
+	for i in ${classpath//:/ }; do
+		if [ -r $i ] && [[ "$i" == *.@(jar|zip) ]]; then
+            COMPREPLY=( ${COMPREPLY[@]} $( unzip -Z -1 $i "$cur*" | \
+            grep -v "META-INF" | \
+            sed -e 's|\('$cur'[^/]*/\).*|\1|' | sort | \
+            uniq ) )
+		elif [ -d $i ]; then
+			COMPREPLY=( ${COMPREPLY[@]} $( command ls -F -d \
+				$i/$cur* 2>/dev/null | sed -e 's|^'$i'/||' ) )
+		fi
+	done
+	# keep only packages and classes
+	COMPREPLY=(
+		$( echo ${COMPREPLY[@]} | tr " " "\n" | grep "/$")
+		$( echo ${COMPREPLY[@]} | tr " " "\n" | grep "\.class$" | \
+		   grep -v "\\$" )
+	)
+	# remove class extension
+	COMPREPLY=( ${COMPREPLY[@]%.class} )
+	# convert path syntax to package syntax
+	COMPREPLY=( ${COMPREPLY[@]//\//.} )
+}
+
+
+# java completion
+#
+_java()
+{
+	local cur prev i
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	for ((i=1; i < $COMP_CWORD; i++)); do
+		case ${COMP_WORDS[$i]} in
+		    -cp|-classpath)
+			((i++))	# skip the classpath string.
+			;;
+		    -*)
+			# this is an option, not a class/jarfile name.
+			;;
+		    *)
+			# once we've seen a class, just do filename completion
+			_filedir
+			return 0
+			;;
+		esac
+	done
+
+	case $prev in
+		-@(cp|classpath))
+			_java_path
+			return 0
+			;;
+	esac
+
+	if [[ "$cur" == -* ]]; then
+		# relevant options completion
+		COMPREPLY=( $( compgen -W '-client -hotspot -server -classic \
+				-cp -classpath -D -verbose -verbose:class \
+				-verbose:gc -version:jni -version \
+				-showversion -? -help -X -jar \
+				-ea -enableassertions -da -disableassertions \
+				-esa -enablesystemassertions \
+				-dsa -disablesystemassertions ' -- $cur ) )
+	else
+		if [[ "$prev" == -jar ]]; then
+			# jar file completion
+			_filedir jar
+		else
+			# classes completion
+			_java_classes
+		fi
+	fi
+}
+complete -F _java $filenames java
+
+
+# javac completion
+_javac()
+{
+	COMPREPLY=()
+	local cur prev
+
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	case $prev in
+		-d)
+			_filedir -d
+			return 0
+			;;
+		-@(classpath|bootclasspath|sourcepath|extdirs))
+			_java_path
+			return 0
+			;;
+	esac
+
+	if [[ "$cur" == -* ]]; then
+		# relevant options completion
+		COMPREPLY=( $( compgen -W '-g -g:none -g:lines -g:vars\
+		-g:source -O -nowarn -verbose -deprecation -classpath\
+		-sourcepath -bootclasspath -extdirs -d -encoding -source\
+		-target -help' -- $cur ) )
+	else
+		# source files completion
+		_filedir java
+	fi
+}
+complete -F _javac $filenames javac
+
+# javap - kind of like java
+#
+_javap()
+{
+	local cur prev i
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	for ((i=1; i < $COMP_CWORD; i++)); do
+		case ${COMP_WORDS[$i]} in
+		    -cp|-classpath)
+			continue # skip the classpath string.
+			;;
+		    -*)
+			# this is an option, not a class/jarfile name.
+			;;
+		    *)
+			# classes to javap
+			_java_classes
+			;;
+		esac
+	done
+
+	case $prev in
+		-@(cp|classpath))
+			_java_path
+			return 0
+			;;
+	esac
+
+	if [[ "$cur" == -* ]]; then
+		# relevant options completion
+		COMPREPLY=( $( compgen -W '-c -classpath -help \
+		                -l -public -protected -package -private \
+				-s -verbose' -- $cur ) );
+	else
+	      # classes completion
+		_java_classes
+	fi
+}
+complete -F _javap $filenames javap
+
+
+
+# jar(1) completion
+#
+_jar()
+{
+	local cur
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+
+	if [ $COMP_CWORD = 1 ]; then
+		COMPREPLY=( $( compgen -W 'c t x u' -- $cur ) )
+		return 0
+	fi
+
+	case "${COMP_WORDS[1]}" in
+		*c*f)
+			_filedir
+			;;
+		*f)
+			_filedir '?(e|j|w)ar'
+			;;
+		*)
+			_filedir
+			;;
+	esac
+}
+complete -F _jar $filenames jar
+
+
+######################################################################## unix
+
+# bash alias completion
+#
+_alias()
+{
+	local cur
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[$COMP_CWORD]}
+
+	case "$COMP_LINE" in
+	*[^=])
+		COMPREPLY=( $( compgen -A alias -S '=' -- $cur ) )
+		;;
+	*=)
+		COMPREPLY=( "$( alias ${cur%=} 2>/dev/null | \
+			     sed -e 's|^alias '$cur'\(.*\)$|\1|' )" )
+		;;
+	esac
+}
+complete -F _alias alias
+
+# bash export completion
+#
+_export()
+{
+	local cur
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[$COMP_CWORD]}
+
+	case "$COMP_LINE" in
+	*=\$*)
+		COMPREPLY=( $( compgen -v -P '$' -- ${cur#*=\$} ) )
+		;;
+	*[^=])
+		COMPREPLY=( $( compgen -v -S '=' -- $cur ) )
+		;;
+	*=)
+		COMPREPLY=( "$( eval echo -n \"$`echo ${cur%=}`\" |
+			( echo -n \'
+			  sed -e 's/'\''/'\''\\\'\'''\''/g'
+			  echo -n \' ) )" )
+		;;
+	esac
+}
+complete -F _export $default $nospace export
+
+
+# chown(1) completion
+#
+_chown()
+{
+	local user
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	local prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	# options completion
+	if [[ "$cur" == -* ]]; then
+		COMPREPLY=( $( compgen -W '-c -h -f -R -v --changes \
+		--dereference --no-dereference --from= --silent --quiet \
+		--reference= --recursive --verbose --help --version' -- $cur ) )
+		return 0
+	fi
+
+	if (( COMP_CWORD == 1 )) || [[ "$prev" == -* ]]; then
+	    local IFS=$'\n'
+	    cur=${cur//\\\\ / }
+	    if [[ $cur = *@(\\:|.)* ]] && [ -n "$bash205" ]; then
+		user=${cur%%*([^:.])}
+		COMPREPLY=( $(compgen -P ${user/\\\\} -g -- ${cur##*[.:]}) )
+	    elif [[ $cur = *:* ]] && [ -n "$bash205" ]; then
+		COMPREPLY=( $( compgen -g -- ${cur##*[.:]} ) )
+	    else
+		COMPREPLY=( $( compgen -S : -u -- $cur ) )
+	    fi
+	else
+	    _filedir
+	fi
+}
+complete -F _chown $filenames chown
+
+# chgrp(1) completion
+#
+_chgrp()
+{
+	local cur prev
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	cur=${cur//\\\\/}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	# options completion
+	if [[ "$cur" == -* ]]; then
+		COMPREPLY=( $( compgen -W '-c -h -f -R -v --changes \
+		--dereference --no-dereference --silent --quiet \
+		--reference= --recursive --verbose --help --version' -- $cur ) )
+		return 0
+	fi
+
+	# first parameter on line or first since an option?
+	if [ $COMP_CWORD -eq 1 ] && [[ "$cur" != -* ]] || \
+	   [[ "$prev" == -* ]] && [ -n "$bash205" ]; then
+		local IFS=$'\n'
+		COMPREPLY=( $( compgen -g $cur 2>/dev/null ) )
+	else
+		_filedir || return 0
+	fi
+
+	return 0
+}
+complete -F _chgrp $filenames chgrp
+
+# man(1) completion
+
+_man()
+{
+	local cur prev sect manpath UNAME
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	_expand || return 0
+
+	# default completion if parameter contains /
+	if [[ "$cur" == */* ]]; then
+		_filedir
+		return 0
+	fi
+
+	UNAME=$( uname -s )
+	# strip OS type and version under Cygwin
+	UNAME=${UNAME/CYGWIN_*/Cygwin}
+	if [ $UNAME = GNU -o $UNAME = Linux -o $UNAME = FreeBSD \
+	     -o $UNAME = Cygwin ]; then
+		manpath=$( manpath 2>/dev/null || command man --path )
+	else
+		manpath=$MANPATH
+	fi
+
+	if [ -z "$manpath" ]; then
+		COMPREPLY=( $( compgen -c -- $cur ) )
+		return 0
+	fi
+
+	# determine manual section to search
+	[[ "$prev" == [0-9ln] ]] && sect=$prev || sect='*'
+
+	manpath=$manpath:
+	if [ -n "$cur" ]; then
+		manpath="${manpath//://*man$sect/$cur* }"
+	else
+		manpath="${manpath//://*man$sect/ }"
+	fi
+		
+	# redirect stderr for when path doesn't exist
+	COMPREPLY=( $( eval command ls "$manpath" 2>/dev/null ) )
+	# weed out directory path names and paths to man pages
+	COMPREPLY=( ${COMPREPLY[@]##*/?(:)} )
+	# strip suffix from man pages
+	COMPREPLY=( ${COMPREPLY[@]%.@(gz|bz2)} )
+	COMPREPLY=( $( compgen -W '${COMPREPLY[@]%.*}' -- "${cur//\\\\/}" ) )
+
+	[[ "$prev" != [0-9ln] ]] && _filedir '[0-9ln]'
+
+	return 0
+}
+complete -F _man $filenames man
+
+
+# This function performs host completion based on ssh's known_hosts files,
+# defaulting to standard host completion if they don't exist.
+#
+_known_hosts()
+{
+       local cur curd ocur user suffix aliases global_kh user_kh hosts i host
+       local -a kh khd config
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	ocur=$cur
+
+	[ "$1" = -a ] || [ "$2" = -a ] && aliases='yes'
+	[ "$1" = -c ] || [ "$2" = -c ] && suffix=':'
+	[[ $cur == *@* ]] && user=${cur%@*}@ && cur=${cur#*@}
+	kh=()
+
+	# ssh config files
+	[ -r /etc/ssh/ssh_config ] &&
+	  config=( ${config[@]} /etc/ssh/ssh_config )
+	[ -r ~/.ssh/config ] &&
+	  config=( ${config[@]} ~/.ssh/config )
+	[ -r ~/.ssh2/config ] &&
+	  config=( ${config[@]} ~/.ssh2/config )
+
+	if [ ${#config[@]} -gt 0 ]; then
+	    # expand path (if present) to global known hosts file
+	    global_kh=$( eval echo $( sed -ne 's/^[Gg][Ll][Oo][Bb][Aa][Ll][Kk][Nn][Oo][Ww][Nn][Hh][Oo][Ss][Tt][Ss][Ff][Ii][Ll][Ee]['$'\t '']*\(.*\)$/\1/p' ${config[@]} ) )
+	    # expand path (if present) to user known hosts file
+	    user_kh=$( eval echo $( sed -ne 's/^[Uu][Ss][Ee][Rr][Kk][Nn][Oo][Ww][Nn][Hh][Oo][Ss][Tt][Ss][Ff][Ii][Ll][Ee]['$'\t '']*\(.*\)$/\1/p' ${config[@]} ) )
+	fi
+
+	# choose which global known hosts file to use
+	if [ -r "$global_kh" ]; then
+	    kh=( "$global_kh" )
+	else
+	    [ -r /etc/ssh/ssh_known_hosts ] &&
+	      kh=( ${kh[@]} /etc/ssh/ssh_known_hosts )
+	    [ -r /etc/ssh/ssh_known_hosts2 ] &&
+	      kh=( ${kh[@]} /etc/ssh/ssh_known_hosts2 )
+	    [ -r /etc/known_hosts ] &&
+	      kh=( ${kh[@]} /etc/known_hosts )
+	    [ -r /etc/known_hosts2 ] &&
+	      kh=( ${kh[@]} /etc/known_hosts2 )
+	    [ -d /etc/ssh2/knownhosts ] &&
+	      khd=( ${khd[@]} /etc/ssh2/knownhosts/*pub )
+	fi
+
+	# choose which user known hosts file to use
+	if [ -r "$user_kh" ]; then
+	    kh=( ${kh[@]} "$user_kh" )
+	else
+	    [ -r ~/.ssh/known_hosts ] &&
+	      kh=( ${kh[@]} ~/.ssh/known_hosts )
+	    [ -r ~/.ssh/known_hosts2 ] &&
+	      kh=( ${kh[@]} ~/.ssh/known_hosts2 )
+	    [ -d ~/.ssh2/hostkeys ] &&
+	      khd=( ${khd[@]} ~/.ssh2/hostkeys/*pub )
+	fi
+
+	# If we have known_hosts files to use
+	if [ ${#kh[@]} -gt 0 -o ${#khd[@]} -gt 0 ]; then
+	    # Escape slashes and dots in paths for awk
+	    cur=${cur//\//\\\/}
+	    cur=${cur//\./\\\.}
+	    curd=$cur
+
+	    if [[ "$cur" == [0-9]*.* ]]; then
+		# Digits followed by a dot - just search for that
+		cur="^$cur.*"
+	    elif [[ "$cur" == [0-9]* ]]; then
+		# Digits followed by no dot - search for digits followed
+		# by a dot
+		cur="^$cur.*\."
+	    elif [ -z "$cur" ]; then
+		# A blank - search for a dot or an alpha character
+		cur="[a-z.]"
+	    else
+		cur="^$cur"
+	    fi
+
+	    if [ ${#kh[@]} -gt 0 ]; then
+
+		# FS needs to look for a comma separated list
+		COMPREPLY=( $( awk 'BEGIN {FS=","}
+				{for (i=1; i<=2; ++i) { \
+				       gsub(" .*$", "", $i); \
+				       if ($i ~ /'$cur'/) {print $i} \
+				}}' ${kh[@]} 2>/dev/null ) )
+	    fi
+	    if [ ${#khd[@]} -gt 0 ]; then
+		# Needs to look for files called
+		# .../.ssh2/key_22_<hostname>.pub
+		# dont fork any processes, because in a cluster environment, 
+		# there can be hundreds of hostkeys
+		for i in ${khd[@]} ; do
+		    if [[ "$i" == *key_22_$curd*.pub ]] && [ -r "$i" ] ; then
+			host=${i/#*key_22_/}
+			host=${host/%.pub/}
+			COMPREPLY=( ${COMPREPLY[@]} $host )
+		    fi
+		done
+	    fi
+	    # append any available aliases from config files
+	    if [ ${#config[@]} -gt 0 ] && [ -n "$aliases" ]; then
+		hosts=$( compgen -W "$( echo $( sed -ne "s/^[Hh][Oo][Ss][Tt]["$'\t '"]*\([^*?]*\)$/\1/p" ${config[@]} ) )" -- $ocur )
+		COMPREPLY=( ${COMPREPLY[@]} $hosts )
+	    fi
+
+	    # apply suffix
+	    for (( i=0; i < ${#COMPREPLY[@]}; i++ )); do
+		COMPREPLY[i]=$user${COMPREPLY[i]}$suffix
+	    done
+	else
+	    # Just do normal hostname completion
+	    COMPREPLY=( $( compgen -A hostname -S "$suffix" -- $cur ) )
+	fi
+
+	return 0
+}
+complete -F _known_hosts traceroute traceroute6 tracepath tracepath6 \
+	ping fping telnet host nslookup rsh rlogin ftp dig ssh-installkeys
+
+# ssh(1) completion
+#
+_ssh()
+{
+	local cur prev
+	local -a config
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	prev=${COMP_WORDS[COMP_CWORD-1]}
+
+	case "$prev" in
+	-*c)
+	    COMPREPLY=( $( compgen -W 'blowfish 3des 3des-cbc blowfish-cbc \
+			   arcfour cast128-cbc' -- $cur ) )
+	    ;;
+	-*i)
+	    _filedir
+	    ;;
+	-*l)
+	    COMPREPLY=( $( compgen -u -- $cur ) )
+	    ;;
+	*)
+	    _known_hosts -a
+
+	    [ $COMP_CWORD -eq 1 ] || \
+		COMPREPLY=( ${COMPREPLY[@]} $( compgen -c -- $cur ) )
+	esac
+
+	return 0
+}
+shopt -u hostcomplete && complete -F _ssh ssh slogin sftp xhost autossh
+
+# scp(1) completion
+#
+_scp()
+{
+	local cur userhost path
+
+	local IFS=$'\t\n'
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+
+	_expand || return 0
+
+	if [[ "$cur" == *:* ]]; then
+		# remove backslash escape from :
+		cur=${cur/\\:/:}
+		userhost=${cur%%?(\\):*}
+		path=${cur#*:}
+		# unescape spaces
+		path=${path//\\\\\\\\ / }
+		if [ -z "$path" ]; then
+			# default to home dir of specified user on remote host
+			path=$(ssh -o 'Batchmode yes' $userhost pwd 2>/dev/null)
+		fi
+		# escape spaces; remove executables, aliases, pipes and sockets;
+		# add space at end of file names
+		COMPREPLY=( $( ssh -o 'Batchmode yes' $userhost \
+				command ls -aF1d "$path*" 2>/dev/null | \
+				sed -e 's/ /\\\\\\\ /g' -e 's/[*@|=]$//g' \
+				    -e 's/[^\/]$/& /g' \
+				    -e 's/\([&()<>;|]\)/\\&/g' ) )
+		return 0
+	fi
+
+	[[ "$cur" == */* ]] || _known_hosts -c -a
+		COMPREPLY=( ${COMPREPLY[@]} $( command ls -aF1d $cur* \
+			    2>/dev/null | sed -e 's/ /\\ /g' -e 's/[*@|=]$//g'\
+			    -e 's/[^\/]$/& /g' -e 's/\([&()<>;|]\)/\\&/g' ) )
+	return 0
+}
+complete -F _scp $nospace scp
+
+
+
+# GNU tar(1) completion
+#
+_tar()
+{
+	local cur ext regex tar untar
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+
+	if [ $COMP_CWORD -eq 1 ]; then
+		COMPREPLY=( $( compgen -W 'c t x u r d A' -- $cur ) )
+		return 0
+	fi
+
+	case "${COMP_WORDS[1]}" in
+	?(-)c*f)
+		_filedir
+		return 0
+		;;
+	+([^IZzjy])f)
+		ext='tar'
+		regex=$ext
+		;;
+	*[Zz]*f)
+		ext='t?(ar.)@(gz|Z)'
+		regex='t\(ar\.\)\(gz\|Z\)'
+		;;
+	*[Ijy]*f)
+		ext='t?(ar.)bz?(2)'
+		regex='t\(ar\.\)bz2\?'
+		;;
+	*)
+		_filedir
+		return 0
+		;;
+		
+	esac
+
+	if [[ "$COMP_LINE" == *$ext' ' ]]; then
+		# complete on files in tar file
+		#
+		# get name of tar file from command line
+		tar=$( echo "$COMP_LINE" | \
+			sed -e 's|^.* \([^ ]*'$regex'\) .*$|\1|' )
+		# devise how to untar and list it
+		untar=t${COMP_WORDS[1]//[^Izjyf]/}
+
+		COMPREPLY=( $( compgen -W "$( echo $( tar $untar $tar \
+				2>/dev/null ) )" -- "$cur" ) )
+		return 0
+	fi
+
+	# file completion on relevant files
+	_filedir $ext
+
+	return 0
+}
+[ -n "${COMP_TAR_INTERNAL_PATHS:-}" ] && complete -F _tar $dirnames tar ||
+	complete -F _tar $filenames tar
+    
+
+# A meta-command completion function for commands like sudo(8), which need to
+# first complete on a command, then complete according to that command's own
+# completion definition - currently not quite foolproof (e.g. mount and umount
+# don't work properly), but still quite useful.
+#
+_command()
+{
+	local cur func cline cspec noglob cmd done i \
+	      _COMMAND_FUNC _COMMAND_FUNC_ARGS
+
+	COMPREPLY=()
+	cur=${COMP_WORDS[COMP_CWORD]}
+	# If the the first arguments following our meta-command-invoker are
+	# switches, get rid of them. Most definitely not foolproof.
+	done=
+	while [ -z $done ] ; do
+	cmd=${COMP_WORDS[1]}
+	    if [[ "$cmd" == -* ]] ; then
+		for (( i=1 ; i<=COMP_CWORD ; i++)) ; do
+		    COMP_WORDS[i]=${COMP_WORDS[i+1]}
+		done
+		COMP_CWORD=$(($COMP_CWORD-1))
+	    else 
+		done=1
+	    fi
+	done
+
+	if [ $COMP_CWORD -eq 1 ]; then
+		COMPREPLY=( $( compgen -c -- $cur ) )
+	elif complete -p $cmd &>/dev/null; then
+		cspec=$( complete -p $cmd )
+		if [ "${cspec#* -F }" != "$cspec" ]; then
+			# complete -F <function>
+			#
+			# COMP_CWORD and COMP_WORDS() are not read-only,
+			# so we can set them before handing off to regular
+			# completion routine
+
+			# set current token number to 1 less than now
+			COMP_CWORD=$(( $COMP_CWORD - 1 ))
+
+			# get function name
+			func=${cspec#*-F }
+			func=${func%% *}
+			# get current command line minus initial command
+			cline="${COMP_LINE#*( )$1 }"
+			# save noglob state
+		      	shopt -qo noglob; noglob=$?
+			# turn on noglob, as things like 'sudo ls *<Tab>'
+			# don't work otherwise
+		  	shopt -so noglob
+			# split current command line tokens into array
+			COMP_WORDS=( $cline )
+			# reset noglob if necessary
+			[ $noglob -eq 1 ] && shopt -uo noglob
+			$func $cline
+			# This is needed in case user finished entering
+			# command and pressed tab (e.g. sudo ls <Tab>)
+			COMP_CWORD=$(( $COMP_CWORD > 0 ? $COMP_CWORD : 1 ))
+			cur=${COMP_WORDS[COMP_CWORD]}
+			_COMMAND_FUNC=$func
+			_COMMAND_FUNC_ARGS=( $cmd $2 $3 )
+			COMP_LINE=$cline
+			COMP_POINT=$(( ${COMP_POINT} - ${#1} - 1 ))
+			$func $cmd $2 $3
+			# remove any \: generated by a command that doesn't
+			# default to filenames or dirnames (e.g. sudo chown)
+			if [ "${cspec#*-o }" != "$cspec" ]; then
+				cspec=${cspec#*-o }
+				cspec=${cspec%% *}
+				if [[ "$cspec" != @(dir|file)names ]]; then
+					COMPREPLY=("${COMPREPLY[@]//\\\\:/:}")
+				fi
+			fi
+		elif [ -n "$cspec" ]; then
+			cspec=${cspec#complete};
+			cspec=${cspec%%$cmd};
+			COMPREPLY=( $( eval compgen "$cspec" -- "$cur" ) );
+		fi
+	fi
+
+	[ ${#COMPREPLY[@]} -eq 0 ] && _filedir
+}
+complete -F _command $filenames nohup exec nice eval strace time ltrace then \
+	else do vsound command xargs
+
+_root_command()
+{
+	PATH=$PATH:/sbin:/usr/sbin:/usr/local/sbin _command $1 $2 $3
+}
+complete -F _root_command $filenames sudo
+
+
+unset UNAME default dirnames filenames nospace 
+

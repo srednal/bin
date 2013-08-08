@@ -1,0 +1,5 @@
+# .bash_profile
+# Get environment from bashrc
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi

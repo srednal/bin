@@ -1,0 +1,244 @@
+# .bashrc
+
+# get standard system stuff - path etc
+[ -f /etc/bashrc ] && . /etc/bashrc
+
+# add something to PATH or CLASSPATH unless its already there
+# adds to end unless -pre
+# if already there doesnt move it
+# Usage setpath [-pre] PATH|CLASSPATH whatever
+function setpath {
+  local _pre
+  if [ "${1}" = "-pre" ]; then
+    _pre=true
+    shift
+  fi
+  if [ -e "${2}" ]; then
+    local _path
+    eval _path=\${${1}}
+    if ! echo ${_path} | egrep -q "(^|:)${2}($|:)" ; then
+       if [ -z "${_pre}" ] ; then
+           _path=${_path}:${2}
+       else
+           _path=${2}:${_path}
+       fi
+       eval ${1}=${_path}
+    fi
+  fi
+}
+
+# Path manipulation
+
+setpath -pre PATH /usr/local/bin
+setpath -pre PATH /opt/java/bin
+setpath -pre PATH ~/bin
+
+setpath PATH /sbin
+setpath PATH /usr/sbin
+setpath PATH /usr/local/sbin
+setpath PATH /usr/local/Acrobat5/bin
+setpath PATH /usr/local/OpenOffice.org1.1.0/program
+setpath PATH /usr/local/mysql/bin
+setpath PATH /usr/X11R6/bin
+#setpath PATH /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/bin
+setpath PATH ~/lib/scala/bin
+#setpath PATH ~/bin/perforce
+
+export CLASSPATH=.
+setpath CLASSPATH ~/bin/java
+setpath CLASSPATH ~/depot/src910_15004/bea/weblogic90/server/lib/weblogic.jar
+
+setpath RUBYLIB ~/bin/ruby
+#setpath RUBYLIB ~/bin/perforce
+export RUBYLIB
+
+#####################
+
+# Set up bash completion
+if [ "$PS1" -a -f ${HOME}/.bash_completion ]; then # interactive shell
+        . ${HOME}/.bash_completion
+fi
+
+# Prompt string: last part of directory
+export PS1='...\W \$ '
+
+# Ignore emacs backup files for file completes
+export FIGNORE='~'
+
+# Takes more than one ^D to exit the shell
+export IGNOREEOF=2
+
+# Repeated commands only go in history once
+export HISTCONTROL=ignoredups
+
+# Don't want ~/.bash_history
+unset HISTFILE
+#export HISTFILESIZE=0
+
+# Colorized ls - BSD (Mac OS X)
+export CLICOLOR=
+# set colors to work with my term colors, etc
+export LSCOLORS=dxcxbxbxgxbxbxBxBxDxDx
+
+
+
+# Command line edit mode = emacs
+#set -o emacs
+
+# Make Bash 8bit clean
+#bind 'set meta-flag on'
+#bind 'set convert-meta off'
+#bind 'set output-meta on'
+
+# Glob files without case sensitivity
+#shopt -s nocaseglob
+
+# Ignore case while completing files
+#bind 'set completion-ignore-case on'
+
+# Show ambiguous completions immediately rather than ringing bell?
+#bind 'set show-all-if-ambiguous off'
+
+# List completions left-to-right rather than top-down
+#bind 'set print-completions-horizontally on'
+
+# Show file type when listing completions
+bind 'set visible-stats on'
+
+# rsync uses ssh
+#RSYNC_RSH=ssh
+
+##################################################################
+# Aliases and Functions
+
+
+# Append (or prepend if -pre) something to PATH and display it
+function path {
+    if [ $# -ne 0 ]; then
+      if [ "${1}" = "-pre" ]; then
+        setpath -pre PATH "${2}"
+      else
+        setpath PATH "${1}"
+      fi
+    fi
+    echo PATH=${PATH}
+}
+
+
+# Append (or prepend if -pre) something to CLASSPATH and display it
+function classpath {
+    if [ $# -ne 0 ]; then
+      if [ "${1}" = "-pre" ]; then
+        setpath -pre CLASSPATH "${2}"
+      else
+        setpath CLASSPATH "${1}"
+      fi
+    fi
+    echo CLASSPATH=${CLASSPATH}
+}
+
+
+# Remove unwanted files
+alias purge='rm -f *~ .??*~ \#*\#'
+alias rpurge='find . \( -name  "*~" -o -name ".??*~" -o -name "\#*\#" \) -print | xargs rm -f'
+
+# Command aliases
+
+export LESS='-eRX'
+alias more='less'
+alias readme='less *[Rr][Ee][Aa][Dd]*[Mm][Ee]*'
+alias h=history
+alias grepi='grep -i'
+
+# witch (which) like type -a plus environment
+function witch()
+{
+    if [ $# -ne 1 ];
+    then
+        echo "Usage: witch command"
+    else
+        type -a $1 2>/dev/null
+        env | grep -iw $1
+    fi
+}
+
+# # Everything in ~/bin/java/*.class is to be started with java
+# for p in `cd ${HOME}/bin/java/; ls *.class 2>/dev/null`;
+# do
+#     # strip off the .class
+#     q=`echo $p | sed -e "s/\.class$//"`
+#     alias $q='java -classpath ${HOME}/bin/java:${CLASSPATH} '$q
+# done
+# unset -v p q
+
+# Find File wrapper
+function ff { find . -name "$*" -exec ls -FldG {} \; ;}
+
+# directory listings
+if [ `uname -s` = "Darwin" ]; then
+    # include file locks in long ls
+    alias ll='ls -lho'
+    alias lla='ls -lhao'
+    function lld { ls -lao $* | grep "^d" ; }
+    function llf { ls -lao $* | grep "^-" ; }
+else
+    alias ll='ls -l'
+    alias lla='ls -la'
+    function lld { ls -la $* | grep "^d" ; }
+    function llf { ls -la $* | grep "^-" ; }
+fi
+
+# Crutches for cd operations
+
+# expand sym links
+set -P
+
+# cdlinks contains useful symlinks for quick chdirs
+#export CDPATH='.:~/cdlinks'
+
+alias up='cd ..'
+alias cd..='cd ..'
+alias home='cd ~'
+alias back='cd -'
+
+# Undo links in pwd
+#alias cdul='cd -P .'
+
+# dump jar manifest
+function mf { unzip -p $1 META-INF/MANIFEST.MF ; }
+# unzip to new dir
+function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
+
+################################################################
+# Build / SCM settings
+
+# java
+# Prefer JDK 1.6 if 1.7 also installed
+# export JAVA_HOME=`/usr/libexec/java_home -v1.6*`
+
+# ant
+if [ -d ${HOME}/lib/apache-ant-1.6.1 ]; then
+    export ANT_HOME=${HOME}/lib/apache-ant-1.6.1
+    setpath PATH ${ANT_HOME}/bin
+fi
+
+#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m'
+
+# P4
+# Use .p4config file(s) for local p4 settings
+export P4CONFIG=".p4config"
+
+# Example contents of .p4config:
+# P4HOST=davespbook.local
+# P4PORT=bunkerhill.bea.com:6999
+# P4CLIENT=landers.davespbook
+# P4PASSWD=clear-text-or-hashed
+# for hashed password, on windows run p4 passwd, then p4 set P4PASSWD
+
+export P4EDITOR=vi
+export P4DIFF=diff
+
+
+export NOS_DIR=${HOME}/dev/nos
+alias ncd='cd ${NOS_DIR}'
+

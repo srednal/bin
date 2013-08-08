@@ -164,5 +164,4 @@ if __FILE__ == $0
   p4 = P4.new
   puts p4.info_RAW
   puts "P4 is #{p4.ping? ? 'UP' : 'DOWN'}"
-  p4.ping
 end
