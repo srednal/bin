@@ -1,55 +1,45 @@
 # .bashrc
 
-# get standard system stuff - path etc
+# get standard system stuff
 [ -f /etc/bashrc ] && . /etc/bashrc
 
-# add something to PATH or CLASSPATH unless its already there
-# adds to end unless -pre
-# if already there doesnt move it
-# Usage setpath [-pre] PATH|CLASSPATH whatever
-function setpath {
-  local _pre
-  if [ "${1}" = "-pre" ]; then
-    _pre=true
-    shift
-  fi
-  if [ -e "${2}" ]; then
-    local _path
-    eval _path=\${${1}}
-    if ! echo ${_path} | egrep -q "(^|:)${2}($|:)" ; then
-       if [ -z "${_pre}" ] ; then
-           _path=${_path}:${2}
-       else
-           _path=${2}:${_path}
-       fi
-       eval ${1}=${_path}
-    fi
-  fi
-}
 
 # Path manipulation
 
-setpath -pre PATH /usr/local/bin
-setpath -pre PATH /opt/java/bin
-setpath -pre PATH ~/bin
+# test if in path
+function _inpath {
+   echo ${PATH} | egrep -q "(^|:)${1}($|:)"
+}
+# add to end of path unless already there or not exist
+function _topath {
+  if [ -n "${1}" ]; then
+    _inpath ${1} || [ ! -d ${1} ] || PATH=${PATH}:${1}
+    shift
+    _topath ${*}
+  fi
+}
 
-setpath PATH /sbin
-setpath PATH /usr/sbin
-setpath PATH /usr/local/sbin
-setpath PATH /usr/local/Acrobat5/bin
-setpath PATH /usr/local/OpenOffice.org1.1.0/program
-setpath PATH /usr/local/mysql/bin
-setpath PATH /usr/X11R6/bin
-#setpath PATH /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/bin
-setpath PATH ~/lib/scala/bin
-#setpath PATH ~/bin/perforce
+_topath /usr/bin /bin /usr/sbin /sbin
+_topath /usr/local/bin /opt/X11/bin
+_topath ~/lib/scala/bin
+
+# _topath ~/bin/p4scripts
+# _topath /usr/local/mysql/bin
+
+# these always go at the head (before installed stuff)
+PATH=${HOME}/bin:/usr/local/git/bin:${HOME}/lib/apache-maven-3.1.0/bin:${PATH}
+
+export PATH
+
+MANPATH=/usr/share/man:/usr/local/share/man:/usr/X11/man:/usr/X11R6/share/man
+MANPATH=/usr/local/git/share/man:${MANPATH}
+MANPATH=${MANPATH}:${HOME}/lib/scala/man
+export MANPATH
 
 export CLASSPATH=.
-setpath CLASSPATH ~/bin/java
-setpath CLASSPATH ~/depot/src910_15004/bea/weblogic90/server/lib/weblogic.jar
 
-setpath RUBYLIB ~/bin/ruby
-#setpath RUBYLIB ~/bin/perforce
+RUBYLIB=${HOME}/bin/ruby
+# RUBYLIB=${RUBYLIB}:${HOME}/bin/p4scripts/ruby
 export RUBYLIB
 
 #####################
@@ -106,37 +96,10 @@ export LSCOLORS=dxcxbxbxgxbxbxBxBxDxDx
 bind 'set visible-stats on'
 
 # rsync uses ssh
-#RSYNC_RSH=ssh
+# RSYNC_RSH=ssh
 
 ##################################################################
 # Aliases and Functions
-
-
-# Append (or prepend if -pre) something to PATH and display it
-function path {
-    if [ $# -ne 0 ]; then
-      if [ "${1}" = "-pre" ]; then
-        setpath -pre PATH "${2}"
-      else
-        setpath PATH "${1}"
-      fi
-    fi
-    echo PATH=${PATH}
-}
-
-
-# Append (or prepend if -pre) something to CLASSPATH and display it
-function classpath {
-    if [ $# -ne 0 ]; then
-      if [ "${1}" = "-pre" ]; then
-        setpath -pre CLASSPATH "${2}"
-      else
-        setpath CLASSPATH "${1}"
-      fi
-    fi
-    echo CLASSPATH=${CLASSPATH}
-}
-
 
 # Remove unwanted files
 alias purge='rm -f *~ .??*~ \#*\#'
@@ -148,19 +111,7 @@ export LESS='-eRX'
 alias more='less'
 alias readme='less *[Rr][Ee][Aa][Dd]*[Mm][Ee]*'
 alias h=history
-alias grepi='grep -i'
 
-# witch (which) like type -a plus environment
-function witch()
-{
-    if [ $# -ne 1 ];
-    then
-        echo "Usage: witch command"
-    else
-        type -a $1 2>/dev/null
-        env | grep -iw $1
-    fi
-}
 
 # # Everything in ~/bin/java/*.class is to be started with java
 # for p in `cd ${HOME}/bin/java/; ls *.class 2>/dev/null`;
@@ -170,9 +121,6 @@ function witch()
 #     alias $q='java -classpath ${HOME}/bin/java:${CLASSPATH} '$q
 # done
 # unset -v p q
-
-# Find File wrapper
-function ff { find . -name "$*" -exec ls -FldG {} \; ;}
 
 # directory listings
 if [ `uname -s` = "Darwin" ]; then
@@ -196,9 +144,7 @@ set -P
 # cdlinks contains useful symlinks for quick chdirs
 #export CDPATH='.:~/cdlinks'
 
-alias up='cd ..'
 alias cd..='cd ..'
-alias home='cd ~'
 alias back='cd -'
 
 # Undo links in pwd
@@ -216,13 +162,17 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 # Prefer JDK 1.6 if 1.7 also installed
 # export JAVA_HOME=`/usr/libexec/java_home -v1.6*`
 
+# maven
+export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
+
+
 # ant
 if [ -d ${HOME}/lib/apache-ant-1.6.1 ]; then
     export ANT_HOME=${HOME}/lib/apache-ant-1.6.1
-    setpath PATH ${ANT_HOME}/bin
+    PATH=${PATH}:${ANT_HOME}/bin
 fi
 
-#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m'
+#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m -Djava.awt.headless=true'
 
 # P4
 # Use .p4config file(s) for local p4 settings
@@ -238,7 +188,20 @@ export P4CONFIG=".p4config"
 export P4EDITOR=vi
 export P4DIFF=diff
 
+###############################################
+# UCAS Build
 
-export NOS_DIR=${HOME}/dev/nos
-alias ncd='cd ${NOS_DIR}'
+# mongodb (/data/db)
+export MONGO_HOME=${HOME}/lib/mongodb-osx-x86_64-2.4.5
+_topath ${MONGO_HOME}/bin
+
+#Sencha CMD and SDK Tools
+
+# for mobile build
+# export SENCHA_CMD_3_0_0="${HOME}/lib/Sencha/Cmd/3.1.2.342"
+# export PATH=${SENCHA_CMD_3_0_0}:${PATH}
+
+# for brm build
+export SENCHA_SDK_TOOLS_2_0_0_BETA3="${HOME}/lib/Sencha/SDKTools"
+export PATH=${SENCHA_SDK_TOOLS_2_0_0_BETA3}:${PATH}
 
