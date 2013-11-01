@@ -1,0 +1,19 @@
+#!/bin/sh
+# Print a file at a particular commit
+#    git config --global alias.print \!~/bin/git-print
+
+if [ $# == 1 ]; then
+  rev=HEAD
+  path=${1}
+elif [ $# == 2 ]; then
+  rev=${1}
+  path=${2}
+else
+  echo "Usage: git-print [id-or-branch(HEAD)] file"
+  exit 1
+fi
+
+git ls-tree -r ${rev} ${path} | while read mode type blob file; do
+  promFile=$(echo ${file} | sed -e 's/\([\?\:\.%\\]\)/\\\1/g')
+  git cat-file -p ${blob} | less -c -P"?n${promFile} .?e(END) :?pB%pB\%:byte %bB?s/%s...%t" -
+done

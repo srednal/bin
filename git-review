@@ -1,0 +1,28 @@
+#!/bin/bash
+# git-review: Review a remote branch (merge request / code review) to be merged into master
+#       git config --global alias.review  \!~/bin/git-review
+# Must be in a branch with a remote named origin (which contains the branch to review, as will be merged into master)
+# Need to have difftool setup
+
+if [ $# -eq 0 ]; then echo "Usage: git-review remote-branch-name [merge-to-branch(master)]"; exit 1; fi
+
+master=${2:-master}
+master=origin/${master/#origin\//}
+review=origin/${1/#origin\//}
+range="${master}..${review}"
+
+git fetch  # update remote refs
+
+if [ 0 == $(git rev-list --count ${range}) ]; then echo "${range} appears to have been merged"; exit; fi
+
+# show what changed (all the commits)
+echo "============= Changes in ${range} ============="
+git whatchanged --name-status --pretty=format:'%C(yellow)%h -%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset%+b' ${range} | cat
+
+# and the final set of diff'ed files
+echo
+echo "============= Diffs in ${range} ============="
+git diff --name-status ${range} | cat
+
+# fire difftool - pass files explicitly so we get an empty file on the left for adds, and thus can look at it
+git difftool ${range} -- $(git diff --diff-filter AM --name-only ${range})
