@@ -21,7 +21,7 @@ function _topath {
 
 _topath /usr/bin /bin /usr/sbin /sbin
 _topath /usr/local/bin /opt/X11/bin
-_topath ~/lib/scala/bin
+_topath ~/lib/scala/bin ~/lib/sbt/bin
 
 # _topath ~/bin/p4scripts
 # _topath /usr/local/mysql/bin
@@ -159,8 +159,7 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 # Build / SCM settings
 
 # java
-# Prefer JDK 1.6 if 1.7 also installed
-# export JAVA_HOME=`/usr/libexec/java_home -v1.6*`
+export JAVA_HOME=`/usr/libexec/java_home -v1.7*`
 
 # maven
 export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
@@ -194,14 +193,4 @@ export P4DIFF=diff
 # mongodb (/data/db)
 export MONGO_HOME=${HOME}/lib/mongodb-osx-x86_64-2.4.5
 _topath ${MONGO_HOME}/bin
-
-#Sencha CMD and SDK Tools
-
-# for mobile build
-# export SENCHA_CMD_3_0_0="${HOME}/lib/Sencha/Cmd/3.1.2.342"
-# export PATH=${SENCHA_CMD_3_0_0}:${PATH}
-
-# for brm build
-export SENCHA_SDK_TOOLS_2_0_0_BETA3="${HOME}/lib/Sencha/SDKTools"
-export PATH=${SENCHA_SDK_TOOLS_2_0_0_BETA3}:${PATH}
 
