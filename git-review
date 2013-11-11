@@ -13,16 +13,20 @@ range="${master}..${review}"
 
 git fetch  # update remote refs
 
-if [ 0 == $(git rev-list --count ${range}) ]; then echo "${range} appears to have been merged"; exit; fi
+commit_count=$(git rev-list --count ${range})
+
+if [ 0 == ${commit_count} ]; then echo "${range} appears to have been merged"; exit; fi
 
 # show what changed (all the commits)
 echo "============= Changes in ${range} ============="
 git whatchanged --name-status --pretty=format:'%C(yellow)%h -%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset%+b' ${range} | cat
 
 # and the final set of diff'ed files
-echo
-echo "============= Diffs in ${range} ============="
-git diff --name-status ${range} | cat
+if [ 1 != ${commit_count} ]; then
+  echo
+  echo "============= Final Diffs in ${range} ============="
+  git diff --name-status ${range} | cat
+fi
 
 # fire difftool - pass files explicitly so we get an empty file on the left for adds, and thus can look at it
 git difftool ${range} -- $(git diff --diff-filter AM --name-only ${range})
