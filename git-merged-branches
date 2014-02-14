@@ -1,0 +1,80 @@
+#!/bin/bash
+# Show (or delete) branches that have been merged to master (or origin/master for remotes)
+#
+#  git merged-branches
+#  git merged-branches --remote
+#  git merged-branches --remote --m2m
+#  git merged-branches --remote --m12
+#  git merged-branches --all
+#  git merged-branches --delete
+#  git merged-branches --delete --remote --m2m
+#  git merged-branches --delete --remote --m12
+
+allowedOpts=( --remote --all --m2m --m12 --delete )
+. $(dirname $0)/getopts.sh
+
+if [ -n "${args}" ]; then
+  echo "Usage: git merged-branches [--remote|--all] [--m2m|--m12] [--delete]"
+  exit 1
+fi
+
+# do not allow --delete with --all or --remote (unless --m2m or --m12)
+if [ -n "${deleteOpt}" ]; then
+  if [ -n "${allOpt}" ]; then
+    echo "Can not --delete --all"
+    exit 1
+  fi
+  if [ -n "${remoteOpt}" ]; then
+    if [ -z "${m2mOpt}${m12Opt}" ]; then
+      echo "Can not --delete --remote without --m2m or --m12"
+      exit 1
+    fi
+  fi
+fi
+
+function dim {
+  echo -e -n "\033[90m"  # grey. dim would be \033[2m but not good for my iTerm color scheme
+}
+
+function undim {
+  echo -e -n "\033[0m"  # reset color
+}
+
+trap undim EXIT # reset color
+
+# If doing --remote or --all, first fetch and prune origin
+if [ -n "${remoteOpt}${allOpt}" ]; then
+  dim
+  git fetch
+  git remote update --prune origin
+  undim
+fi
+
+function mergedBranches {
+  # git branch: with --remote, remotes are prefixed with origin/, with --all they are prefixed with remotes/origin/
+  git branch $1 ${remoteOpt} ${allOpt} --merged origin/master | egrep -v '^\*{0,1} *((remotes/){0,1}origin/){0,1}master|HEAD(( -> .*)|$)' 
+}
+
+function filterBranches {
+  if [ -n "${m2mOpt}" ]; then
+    egrep '\-m2m$'
+  elif [ -n "${m12Opt}" ]; then
+    egrep '\-m12$'
+  else
+    cat
+  fi
+}
+
+function deleteBranches {
+  if [ -n "${deleteOpt}" ]; then
+    if [ -n "${remoteOpt}" ]; then
+      sed -e 's/^ *\(\(remotes\/\)\{0,1\}origin\/\)\{0,1\}//' | xargs git push --delete origin
+    else
+      xargs git branch --delete
+    fi
+  else
+    cat
+  fi
+}
+
+mergedBranches | filterBranches | deleteBranches

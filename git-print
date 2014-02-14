@@ -1,6 +1,5 @@
 #!/bin/sh
 # Print a file at a particular commit
-#    git config --global alias.print \!~/bin/git-print
 
 if [ $# == 1 ]; then
   rev=HEAD

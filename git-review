@@ -1,17 +1,29 @@
 #!/bin/bash
 # git-review: Review a remote branch (merge request / code review) to be merged into master
-#       git config --global alias.review  \!~/bin/git-review
 # Must be in a branch with a remote named origin (which contains the branch to review, as will be merged into master)
 # Need to have difftool setup
 
-if [ $# -eq 0 ]; then echo "Usage: git-review remote-branch-name [merge-to-branch(master)]"; exit 1; fi
+# Usage: git-review [--nodiff] remote-branch-name [merge-to-branch]
+#     --nodiff skips running difftool on all the changed files
+#     merge-to-branch defaults to master, which is usually what you want
+
+
+if [ "$1" = "--nodiff" ]; then
+  nodiff=1
+  shift
+fi
+
+if [ $# -eq 0 ]; then echo "Usage: git-review [--nodiff] remote-branch-name [merge-to-branch(master)]"; exit 1; fi
 
 master=${2:-master}
 master=origin/${master/#origin\//}
 review=origin/${1/#origin\//}
-range="${master}..${review}"
 
 git fetch  # update remote refs
+
+base=$(git merge-base ${master} ${review})
+
+range="${base}..${review}"
 
 commit_count=$(git rev-list --count ${range})
 
@@ -19,14 +31,16 @@ if [ 0 == ${commit_count} ]; then echo "${range} appears to have been merged"; e
 
 # show what changed (all the commits)
 echo "============= Changes in ${range} ============="
-git whatchanged --name-status --pretty=format:'%C(yellow)%h -%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset%+b' ${range} | cat
+git log --stat --pretty=format:'%C(yellow)%h -%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset%+b' ${range}
 
 # and the final set of diff'ed files
-if [ 1 != ${commit_count} ]; then
+if [ 1 -ne ${commit_count} ]; then
   echo
   echo "============= Final Diffs in ${range} ============="
-  git diff --name-status ${range} | cat
+  git diff --name-status ${range}
 fi
 
-# fire difftool - pass files explicitly so we get an empty file on the left for adds, and thus can look at it
-git difftool ${range} -- $(git diff --diff-filter AM --name-only ${range})
+# fire difftool
+if [ -z "${nodiff}" ]; then
+  git difftool ${range}
+fi
