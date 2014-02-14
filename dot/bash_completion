@@ -763,6 +763,7 @@ _man()
 	return 0
 }
 complete -F _man $filenames man
+complete -F _man $filenames dash
 
 
 # This function performs host completion based on ssh's known_hosts files,

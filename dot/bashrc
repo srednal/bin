@@ -27,7 +27,7 @@ _topath ~/lib/scala/bin ~/lib/sbt/bin
 # _topath /usr/local/mysql/bin
 
 # these always go at the head (before installed stuff)
-PATH=${HOME}/bin:/usr/local/git/bin:${HOME}/lib/apache-maven-3.1.0/bin:${PATH}
+PATH=${HOME}/bin:${HOME}/lib/apache-maven-3.1.0/bin:${PATH}
 
 export PATH
 
@@ -112,6 +112,7 @@ alias more='less'
 alias readme='less *[Rr][Ee][Aa][Dd]*[Mm][Ee]*'
 alias h=history
 
+function dash { open dash://man:"$*" ; }
 
 # # Everything in ~/bin/java/*.class is to be started with java
 # for p in `cd ${HOME}/bin/java/; ls *.class 2>/dev/null`;
@@ -194,3 +195,5 @@ export P4DIFF=diff
 export MONGO_HOME=${HOME}/lib/mongodb-osx-x86_64-2.4.5
 _topath ${MONGO_HOME}/bin
 
+# For harmony-ui grunt build
+export CHROME_BIN=$HOME/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
