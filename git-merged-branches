@@ -45,8 +45,7 @@ trap undim EXIT # reset color
 # If doing --remote or --all, first fetch and prune origin
 if [ -n "${remoteOpt}${allOpt}" ]; then
   dim
-  git fetch
-  git remote update --prune origin
+  git fetch --prune
   undim
 fi
 
