@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Download p4merge from http://www.perforce.com/product/components/perforce-visual-merge-and-diff-tools
+#
+# git config --global diff.tool p4merge
+# git config --global merge.tool p4merge
+# git config --global mergetool.p4merge.path $HOME/bin/p4merge
+# git config --global difftool.p4merge.path $HOME/bin/p4merge
+#
+# git config --global difftool.prompt false
+# git config --global mergetool.prompt false
+# git config --global mergetool.keepbackup false
+
+for arg; do [[ $arg = /* ]] || arg=$PWD/$arg; absargs+=("$arg"); done
+
+~/Applications/p4merge.app/Contents/Resources/launchp4merge "${absargs[@]}"
