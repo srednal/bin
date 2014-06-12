@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Simple child dir git-status scan
+
+for d in *; do
+    if [ -d  $d -a -d $d/.git ]; then
+        pushd $d  > /dev/null
+        echo
+        echo $d
+        git status --short --branch
+        popd > /dev/null
+    fi
+done
