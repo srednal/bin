@@ -27,7 +27,7 @@ _topath ~/lib/scala/bin ~/lib/sbt/bin
 # _topath /usr/local/mysql/bin
 
 # these always go at the head (before installed stuff)
-PATH=${HOME}/bin:${HOME}/lib/apache-maven-3.1.0/bin:${PATH}
+PATH=${HOME}/bin:${HOME}/dev/srednal/bin:${PATH}
 
 export PATH
 
