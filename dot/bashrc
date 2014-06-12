@@ -197,3 +197,12 @@ _topath ${MONGO_HOME}/bin
 
 # For harmony-ui grunt build
 export CHROME_BIN=$HOME/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
+
+function gradle {
+  if [ -x './gradlew' ]; then
+    ./gradlew "$@"
+  else
+    ${HOME}/lib/gradle-1.11/bin/gradle "$@"
+  fi
+}
+

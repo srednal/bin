@@ -1296,3 +1296,37 @@ _mvn()
 complete -o default -F _mvn -o nospace mvn
 complete -o default -F _mvn -o nospace mvnDebug
 
+
+###############################################
+# gradle completion
+# adapted from https://gist.github.com/nolanlawson/8694399
+#
+
+_gradle()
+{
+
+    local cache_dir="$HOME/.gradle_completion"
+    mkdir -p $cache_dir
+
+    local gradle_file_checksum='NONE'
+    [ -f build.gradle ] && gradle_file_checksum=$(md5 -q build.gradle)
+
+    local commands=''
+    if [ -f $cache_dir/$gradle_file_checksum ]; then
+        commands=$(cat $cache_dir/$gradle_file_checksum)
+    else
+        # echo
+        # echo "indexing..."
+        local gradle_cmd='gradle'
+        [ -f ./gradlew ] && gradle_cmd='./gradlew'
+        commands=$($gradle_cmd --no-color --quiet tasks --all | sed -n -e 's/^ *\([a-z][^ ]*\)\( .*\)\{0,1\}$/\1/p')
+        local opts=$(gradle --help | sed -n -e 's/^.*\(--[-a-z]*\) .*$/\1/p')        
+        [ -z "$commands" ] || echo $commands >> $cache_dir/$gradle_file_checksum
+    fi
+
+    local opts='--help --no-rebuild --build-file --cache --settings-file --continue -D --system-prop --debug --daemon --gradle-user-home --gui --init-script --info --dry-run --no-color --no-daemon --offline -P --project-prop --project-dir --profile --project-cache-dir --quiet --recompile-scripts --refresh-dependencies --rerun-tasks --full-stacktrace --stacktrace --stop --no-search-upward --version --exclude-task'
+
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    COMPREPLY=( $(compgen -W "$opts $commands" -- $cur) )
+}
+complete -F _gradle gradle gradlew
