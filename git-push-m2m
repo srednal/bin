@@ -1,0 +1,21 @@
+#!/bin/bash
+# git push-m2m
+# does the equivalent of git push origin current-branch:current-branch-m2m
+#  or git push origin current-branch-m2m:current-branch-m2m (if the current branch is already -m2m)
+
+if [ -n "$(git status --porcelain)" ]; then
+  git status
+  echo
+  echo working directory unclean, nothing pushed
+  exit 1
+fi
+
+from=$(git symbolic-ref -q --short HEAD)
+to=${from/%-m2m/}-m2m
+
+if [ "master" == "${from}" ]; then
+  echo do not push master-m2m
+  exit 1
+fi
+
+git push origin ${from}:${to}
