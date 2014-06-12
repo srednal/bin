@@ -19,7 +19,7 @@ LOCATIONS = {
 # see if VPN is connected
 def vpn?
     vpn = false;
-    IO.popen( '/opt/cisco/vpn/bin/vpn status' ) do |out|
+    IO.popen( '/opt/cisco/anyconnect/bin/vpn status' ) do |out|
         out.each do |line|
             vpn |= line =~ />> state: Connected/
         end
@@ -31,7 +31,7 @@ end
 def vpn_app?
     vpn = false
     `ps -ewwo pid,args`.each do |line| 
-        vpn |= line =~ /Cisco\ AnyConnect\ VPN\ Client\.app/
+        vpn |= line =~ /Cisco\ AnyConnect\ Secure\ Mobility\ Client\.app/
     end
     vpn
 end
