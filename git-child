@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+    echo Usage: git child git-cmd [args...]
+    exit 1
+fi
+
+# Simple child dir scan, execute git $@ in each subdir
+for d in *; do
+    if [ -d  $d -a -d $d/.git ]; then
+        pushd $d > /dev/null
+        echo "In ${d}:"
+        git "$@"
+        popd > /dev/null
+    fi
+done
