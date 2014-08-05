@@ -160,7 +160,10 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 # Build / SCM settings
 
 # java
-export JAVA_HOME=`/usr/libexec/java_home -v1.7*`
+function setjdk() {
+    export JAVA_HOME=`/usr/libexec/java_home -v $@`
+}
+setjdk 1.7
 
 # maven
 export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
