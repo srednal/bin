@@ -160,10 +160,23 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 # Build / SCM settings
 
 # java
-function setjdk() {
-    export JAVA_HOME=`/usr/libexec/java_home -v $@`
+function jdk() {
+    # -q means quiet, else runs java -version after setting
+    local _q=0
+    if [ "$1" == '-q' ]; then
+        _q=1
+        shift
+    fi
+    local _v="$@"
+    # allow shortcut jdk 7 meaning jdk 1.7
+    if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then
+        _v="1.$_v"
+    fi
+    # if no version given, don't set anything (just do java -version)
+    [ -z "$_v" ] || export JAVA_HOME=`/usr/libexec/java_home -v $_v`
+    [ $_q = 1 ] || java -version
 }
-setjdk 1.7
+jdk -q 1.8
 
 # maven
 export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
