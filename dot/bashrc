@@ -21,7 +21,6 @@ function _topath {
 
 _topath /usr/bin /bin /usr/sbin /sbin
 _topath /usr/local/bin /opt/X11/bin
-_topath ~/lib/scala/bin ~/lib/sbt/bin
 
 # _topath ~/bin/p4scripts
 # _topath /usr/local/mysql/bin
@@ -32,8 +31,7 @@ PATH=${HOME}/bin:${HOME}/dev/srednal/bin:${PATH}
 export PATH
 
 MANPATH=/usr/share/man:/usr/local/share/man:/usr/X11/man:/usr/X11R6/share/man
-MANPATH=/usr/local/git/share/man:${MANPATH}
-MANPATH=${MANPATH}:${HOME}/lib/scala/man
+MANPATH=${MANPATH}:/usr/local/git/share/man
 export MANPATH
 
 export CLASSPATH=.
@@ -181,12 +179,7 @@ jdk -q 1.8
 # maven
 export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
 
-
-# ant
-if [ -d ${HOME}/lib/apache-ant-1.6.1 ]; then
-    export ANT_HOME=${HOME}/lib/apache-ant-1.6.1
-    PATH=${PATH}:${ANT_HOME}/bin
-fi
+# ant (brew info ant)
 
 #export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m -Djava.awt.headless=true'
 
@@ -207,9 +200,7 @@ export P4DIFF=diff
 ###############################################
 # UCAS Build
 
-# mongodb (/data/db)
-export MONGO_HOME=${HOME}/lib/mongodb-osx-x86_64-2.4.5
-_topath ${MONGO_HOME}/bin
+# mongodb (/data/db) => see brew info mongodb
 
 # For harmony-ui grunt build
 export CHROME_BIN=$HOME/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
@@ -218,7 +209,7 @@ function gradle {
   if [ -x './gradlew' ]; then
     ./gradlew "$@"
   else
-    ${HOME}/lib/gradle-1.11/bin/gradle "$@"
+    /usr/local/bin/gradle "$@"
   fi
 }
 
