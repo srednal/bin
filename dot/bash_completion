@@ -1330,3 +1330,8 @@ _gradle()
     COMPREPLY=( $(compgen -W "$opts $commands" -- $cur) )
 }
 complete -F _gradle gradle gradlew
+
+
+####################################################################### homebrew
+
+complete  -W 'info home doctor update config upgrade search list options install uninstall' brew
