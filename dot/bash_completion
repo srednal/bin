@@ -1319,11 +1319,11 @@ _gradle()
         # echo "indexing..."
         local gradle_cmd='gradle'
         [ -f ./gradlew ] && gradle_cmd='./gradlew'
-        commands=$($gradle_cmd --no-color --quiet tasks --all | sed -n -e 's/^ *\([a-z][^ ]*\)\( .*\)\{0,1\}$/\1/p')
-        local opts=$(gradle --help | sed -n -e 's/^.*\(--[-a-z]*\) .*$/\1/p')        
+        commands=$($gradle_cmd --offline --no-color --quiet tasks --all | sed -n -e 's/^ *\([a-z][^ ]*\)\( .*\)\{0,1\}$/\1/p') 
         [ -z "$commands" ] || echo $commands >> $cache_dir/$gradle_file_checksum
     fi
 
+    # could grok this from gradle --help but this is trimmed to what I might want to use...
     local opts='--help --no-rebuild --build-file --cache --settings-file --continue -D --system-prop --debug --daemon --gradle-user-home --gui --init-script --info --dry-run --no-color --no-daemon --offline -P --project-prop --project-dir --profile --project-cache-dir --quiet --recompile-scripts --refresh-dependencies --rerun-tasks --full-stacktrace --stacktrace --stop --no-search-upward --version --exclude-task'
 
     local cur=${COMP_WORDS[COMP_CWORD]}
