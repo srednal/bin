@@ -9,16 +9,14 @@
     <key>StartCalendarInterval</key>
     <dict>
         <key>Hour</key>
-        <integer>18</integer>
+        <integer>16</integer>
         <key>Minute</key>
         <integer>0</integer>
     </dict>
-    <key>EnableGlobbing</key>
-    <true/>
     <key>ProgramArguments</key>
     <array>
-        <string>osascript</string>
-        <string>~/dev/srednal/bin/copyCalendar.scpt</string>
+        <string>/usr/bin/osascript</string>
+        <string>/Users/dlanders/dev/srednal/bin/copyCalendar.scpt</string>
     </array>
 </dict>
 </plist>
