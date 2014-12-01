@@ -16,7 +16,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/bin/osascript</string>
-        <string>/Users/dlanders/dev/srednal/bin/copyCalendar.scpt</string>
+        <string>/Users/dlanders/dev/srednal/bin/copyCalendar.applescript</string>
     </array>
 </dict>
 </plist>
