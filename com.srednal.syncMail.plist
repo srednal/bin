@@ -13,7 +13,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>osascript</string>
-        <string>~/bin/syncMail.scpt</string>
+        <string>~/bin/syncMail.applescript</string>
     </array>
 </dict>
 </plist>
