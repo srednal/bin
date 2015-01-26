@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Goes in /Library/LaunchAgents/com.srednal.cleanwifi.plist (as root) -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.srednal.cleanwifi</string>
+    <key>UserName</key>
+    <string>root</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>WatchPaths</key>
+    <array>
+        <string>/Library/Preferences/SystemConfiguration</string>
+    </array>
+    <key>Program</key>
+    <string>/Users/dlanders/dev/srednal/bin/cleanwifi.sh</string>
+</dict>
+</plist>
