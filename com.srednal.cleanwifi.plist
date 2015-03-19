@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- /Library/LaunchDaemons/com.srednal.cleanwifi.plist && chown root -->
+<!-- /Library/LaunchDaemons/com.srednal.cleanwifi.plist -->
 <plist version="1.0">
 <dict>
     <key>Label</key>
     <string>com.srednal.cleanwifi</string>
     <key>UserName</key>
     <string>root</string>
+    <!-- launchd expects it to keep running, but it doesnt.  so tell it not to wait around too long -->
+    <key>ThrottleInterval</key>
+    <integer>1</integer>
     <key>WatchPaths</key>
     <array>
         <string>/Library/Preferences/SystemConfiguration</string>
