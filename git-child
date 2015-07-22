@@ -9,7 +9,7 @@ fi
 for d in *; do
     if [ -d  $d -a -d $d/.git ]; then
         pushd $d > /dev/null
-        echo "In ${d}:"
+        echo "==================> In ${d}: "
         git "$@"
         popd > /dev/null
     fi
