@@ -1334,4 +1334,4 @@ complete -F _gradle gradle gradlew
 
 ####################################################################### homebrew
 
-complete  -W 'info home doctor update config upgrade search list options install uninstall' brew
+complete  -W 'info home doctor update config upgrade search list options cleanup outdated install uninstall' brew
