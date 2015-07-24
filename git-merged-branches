@@ -10,23 +10,23 @@
 #  git merged-branches --delete --remote --m2m
 #  git merged-branches --delete --remote --m12
 
-allowedOpts=( --remote --all --m2m --m12 --delete )
+allowedOpts=( --remote --all --m2m --m12 --m13 --delete )
 . $(dirname $0)/getopts.sh
 
 if [ -n "${args}" ]; then
-  echo "Usage: git merged-branches [--remote|--all] [--m2m|--m12] [--delete]"
+  echo "Usage: git merged-branches [--remote|--all] [--m2m|--m12|--m13] [--delete]"
   exit 1
 fi
 
-# do not allow --delete with --all or --remote (unless --m2m or --m12)
+# do not allow --delete with --all or --remote (unless --m2m or --m12 or --m13)
 if [ -n "${deleteOpt}" ]; then
   if [ -n "${allOpt}" ]; then
     echo "Can not --delete --all"
     exit 1
   fi
   if [ -n "${remoteOpt}" ]; then
-    if [ -z "${m2mOpt}${m12Opt}" ]; then
-      echo "Can not --delete --remote without --m2m or --m12"
+    if [ -z "${m2mOpt}${m12Opt}${m13Opt}" ]; then
+      echo "Can not --delete --remote without --m2m or --m12 or --m13"
       exit 1
     fi
   fi
@@ -59,6 +59,8 @@ function filterBranches {
     egrep '\-m2m$'
   elif [ -n "${m12Opt}" ]; then
     egrep '\-m12$'
+  elif [ -n "${m13Opt}" ]; then
+    egrep '\-m13$'
   else
     cat
   fi
