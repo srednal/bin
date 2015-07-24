@@ -1,3 +1,0 @@
-#!/bin/sh
-open -a 'Cisco AnyConnect VPN Client'
-/usr/sbin/scselect 'Oracle Proxy'
