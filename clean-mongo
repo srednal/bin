@@ -1,0 +1,18 @@
+#!/bin/sh
+
+DBS=$(mongo --quiet --eval 'shellHelper("show", "dbs")' | cut -d' ' -f1 | egrep -v '^local$')
+
+if [ -z "${DBS}" ]; then
+  echo Nothing to do
+  exit
+fi
+
+if [ "$1" != "-f" ]; then
+  echo Will drop databases: ${DBS}
+  echo Use -f to confirm
+  exit 1
+fi
+
+for db in ${DBS}; do
+    mongo ${db} --eval 'db.dropDatabase()'
+done
