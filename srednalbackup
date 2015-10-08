@@ -15,7 +15,7 @@ for d in `find ${HOME}/Sites/${site} -type d`; do
     
     # might have been pruned already
     if [ -d $d ]; then
-        echo cleaning $d
+        echo cleaning $d >> ${logfile}
         cd $d
     
         cat .listing | tr -d '\r' | sed -E -n -e 's/^([^ ]+ +){8}//p' | egrep -v '^((\.)|(\.\.)|(\.listing))$' | sort > .listing1
