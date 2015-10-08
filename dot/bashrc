@@ -44,11 +44,18 @@ export RUBYLIB
 
 # Set up bash completion
 if [ "$PS1" -a -f ${HOME}/.bash_completion ]; then # interactive shell
-        . ${HOME}/.bash_completion
-fi
+    . ${HOME}/.bash_completion
 
-# Prompt string: last part of directory
-export PS1='...\W \$ '
+    # Prompt string: last part of directory, with red exit status if non-zero
+    mk_prompt() {
+        if [ $? == 0 ]; then
+            PS1='...\W \$ '
+        else
+            PS1='...\W \[\033[1;31m\][$?]\[\033[m\] \$ '
+        fi
+    }
+    PROMPT_COMMAND=mk_prompt
+fi
 
 # Ignore emacs backup files for file completes
 export FIGNORE='~'
@@ -176,34 +183,6 @@ function jdk() {
 }
 jdk -q 1.8
 
-# maven
-export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
-
-# ant (brew info ant)
-
-#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m -Djava.awt.headless=true'
-
-# P4
-# Use .p4config file(s) for local p4 settings
-export P4CONFIG=".p4config"
-
-# Example contents of .p4config:
-# P4HOST=davespbook.local
-# P4PORT=bunkerhill.bea.com:6999
-# P4CLIENT=landers.davespbook
-# P4PASSWD=clear-text-or-hashed
-# for hashed password, on windows run p4 passwd, then p4 set P4PASSWD
-
-export P4EDITOR=vi
-export P4DIFF=diff
-
-###############################################
-# UCAS Build
-
-# mongodb (/data/db) => see brew info mongodb
-
-# For harmony-ui grunt build
-export CHROME_BIN=$HOME/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome
 
 function gradle {
   if [ -x './gradlew' ]; then
@@ -213,3 +192,22 @@ function gradle {
   fi
 }
 
+# maven
+#export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
+
+# ant (brew info ant)
+#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m -Djava.awt.headless=true'
+
+# P4
+# Use .p4config file(s) for local p4 settings
+#export P4CONFIG=".p4config"
+
+# Example contents of .p4config:
+# P4HOST=davespbook.local
+# P4PORT=bunkerhill.bea.com:6999
+# P4CLIENT=landers.davespbook
+# P4PASSWD=clear-text-or-hashed
+# for hashed password, on windows run p4 passwd, then p4 set P4PASSWD
+
+#export P4EDITOR=vi
+#export P4DIFF=diff
