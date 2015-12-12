@@ -42,9 +42,14 @@ export RUBYLIB
 
 #####################
 
-# Set up bash completion
-if [ "$PS1" -a -f ${HOME}/.bash_completion ]; then # interactive shell
-    . ${HOME}/.bash_completion
+# interactive shell
+if [ -n "$PS1" ]; then
+
+    # Set up bash completion
+    if [ -f $(brew --prefix)/etc/bash_completion ]; then
+        . $(brew --prefix)/etc/bash_completion
+    fi
+    #    . ${HOME}/.bash_completion
 
     # Prompt string: last part of directory, with red exit status if non-zero
     mk_prompt() {
@@ -55,6 +60,7 @@ if [ "$PS1" -a -f ${HOME}/.bash_completion ]; then # interactive shell
         fi
     }
     PROMPT_COMMAND=mk_prompt
+
 fi
 
 # Ignore emacs backup files for file completes
