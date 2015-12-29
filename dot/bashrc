@@ -22,9 +22,6 @@ function _topath {
 _topath /usr/bin /bin /usr/sbin /sbin
 _topath /usr/local/bin /opt/X11/bin
 
-# _topath ~/bin/p4scripts
-# _topath /usr/local/mysql/bin
-
 # these always go at the head (before installed stuff)
 PATH=${HOME}/bin:${HOME}/dev/srednal/bin:${PATH}
 
@@ -36,9 +33,6 @@ export MANPATH
 
 export CLASSPATH=.
 
-RUBYLIB=${HOME}/bin/ruby
-# RUBYLIB=${RUBYLIB}:${HOME}/bin/p4scripts/ruby
-export RUBYLIB
 
 #####################
 
@@ -74,40 +68,15 @@ export HISTCONTROL=ignoredups
 
 # Don't want ~/.bash_history
 unset HISTFILE
-#export HISTFILESIZE=0
 
 # Colorized ls - BSD (Mac OS X)
 export CLICOLOR=
 # set colors to work with my term colors, etc
 export LSCOLORS=dxcxbxbxgxbxbxBxBxDxDx
 
-
-
-# Command line edit mode = emacs
-#set -o emacs
-
-# Make Bash 8bit clean
-#bind 'set meta-flag on'
-#bind 'set convert-meta off'
-#bind 'set output-meta on'
-
-# Glob files without case sensitivity
-#shopt -s nocaseglob
-
-# Ignore case while completing files
-#bind 'set completion-ignore-case on'
-
-# Show ambiguous completions immediately rather than ringing bell?
-#bind 'set show-all-if-ambiguous off'
-
-# List completions left-to-right rather than top-down
-#bind 'set print-completions-horizontally on'
-
 # Show file type when listing completions
 bind 'set visible-stats on'
 
-# rsync uses ssh
-# RSYNC_RSH=ssh
 
 ##################################################################
 # Aliases and Functions
@@ -124,15 +93,6 @@ alias readme='less *[Rr][Ee][Aa][Dd]*[Mm][Ee]*'
 alias h=history
 
 function dash { open dash://man:"$*" ; }
-
-# # Everything in ~/bin/java/*.class is to be started with java
-# for p in `cd ${HOME}/bin/java/; ls *.class 2>/dev/null`;
-# do
-#     # strip off the .class
-#     q=`echo $p | sed -e "s/\.class$//"`
-#     alias $q='java -classpath ${HOME}/bin/java:${CLASSPATH} '$q
-# done
-# unset -v p q
 
 # directory listings
 if [ `uname -s` = "Darwin" ]; then
@@ -153,14 +113,8 @@ fi
 # expand sym links
 set -P
 
-# cdlinks contains useful symlinks for quick chdirs
-#export CDPATH='.:~/cdlinks'
-
 alias cd..='cd ..'
 alias back='cd -'
-
-# Undo links in pwd
-#alias cdul='cd -P .'
 
 # dump jar manifest
 function mf { unzip -p $1 META-INF/MANIFEST.MF ; }
@@ -198,22 +152,10 @@ function gradle {
   fi
 }
 
-# maven
-#export MAVEN_OPTS='-Xmx512m -Djava.awt.headless=true'
 
-# ant (brew info ant)
-#export ANT_OPTS='-XX:MaxPermSize=256m -Xmx512m -Djava.awt.headless=true'
+## Docker
 
-# P4
-# Use .p4config file(s) for local p4 settings
-#export P4CONFIG=".p4config"
-
-# Example contents of .p4config:
-# P4HOST=davespbook.local
-# P4PORT=bunkerhill.bea.com:6999
-# P4CLIENT=landers.davespbook
-# P4PASSWD=clear-text-or-hashed
-# for hashed password, on windows run p4 passwd, then p4 set P4PASSWD
-
-#export P4EDITOR=vi
-#export P4DIFF=diff
+if type docker-machine > /dev/null; then
+    eval "$(docker-machine env default)"
+    export DOCKER_HOST_IP="$(docker-machine ip default)"
+fi

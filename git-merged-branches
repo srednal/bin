@@ -3,30 +3,30 @@
 #
 #  git merged-branches
 #  git merged-branches --remote
-#  git merged-branches --remote --m2m
-#  git merged-branches --remote --m12
+#  git merged-branches --remote --feature
+#  git merged-branches --remote --issue
 #  git merged-branches --all
 #  git merged-branches --delete
-#  git merged-branches --delete --remote --m2m
-#  git merged-branches --delete --remote --m12
+#  git merged-branches --delete --remote --feature
+#  git merged-branches --delete --remote --issue
 
-allowedOpts=( --remote --all --m2m --m12 --m13 --delete )
+allowedOpts=( --remote --all --feature --issue --delete )
 . $(dirname $0)/getopts.sh
 
 if [ -n "${args}" ]; then
-  echo "Usage: git merged-branches [--remote|--all] [--m2m|--m12|--m13] [--delete]"
+  echo "Usage: git merged-branches [--remote|--all] [--feature|--issue] [--delete]"
   exit 1
 fi
 
-# do not allow --delete with --all or --remote (unless --m2m or --m12 or --m13)
+# do not allow --delete with --all or --remote (unless --feature or --issue)
 if [ -n "${deleteOpt}" ]; then
   if [ -n "${allOpt}" ]; then
     echo "Can not --delete --all"
     exit 1
   fi
   if [ -n "${remoteOpt}" ]; then
-    if [ -z "${m2mOpt}${m12Opt}${m13Opt}" ]; then
-      echo "Can not --delete --remote without --m2m or --m12 or --m13"
+    if [ -z "${featureOpt}${issueOpt}" ]; then
+      echo "Can not --delete --remote without --feature or --issue"
       exit 1
     fi
   fi
@@ -55,12 +55,10 @@ function mergedBranches {
 }
 
 function filterBranches {
-  if [ -n "${m2mOpt}" ]; then
-    egrep '\-m2m$'
-  elif [ -n "${m12Opt}" ]; then
-    egrep '\-m12$'
-  elif [ -n "${m13Opt}" ]; then
-    egrep '\-m13$'
+  if [ -n "${featureOpt}" ]; then
+    egrep '^ *(origin/){0,1}feature/'
+  elif [ -n "${issueOpt}" ]; then
+    egrep '^ *(origin/){0,1}issue/'
   else
     cat
   fi
