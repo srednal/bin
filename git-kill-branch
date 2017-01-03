@@ -1,0 +1,10 @@
+#!/bin/bash
+#
+# Delete the branch and its remote counterpart
+
+for branch in "${@}"; do
+
+  git branch  --delete ${branch}
+  git push --delete origin ${branch}
+
+done

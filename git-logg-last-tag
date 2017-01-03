@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# git logg-last-tag
+# log from the last tag on branch $1 (or HEAD) to HEAD (include both the tag commit and the branch)
+#  i.e. git logg-since-last-tag origin/master
+
+branch=${1:-}
+
+git logg $(git last-tag ${branch})^..${branch}

@@ -152,10 +152,9 @@ function gradle {
   fi
 }
 
+#########################################################
+# Local additions
 
-## Docker
+[ -f ${HOME}/.bashrc-local ] && . ${HOME}/.bashrc-local
 
-if type docker-machine > /dev/null; then
-    eval "$(docker-machine env default)"
-    export DOCKER_HOST_IP="$(docker-machine ip default)"
-fi
+#

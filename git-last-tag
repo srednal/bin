@@ -1,0 +1,7 @@
+#/bin/sh
+
+# git last-tag
+
+branch=${1:-}
+
+git describe --abbrev=0 ${branch}

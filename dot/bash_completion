@@ -36,3 +36,13 @@ complete -F _gradle gradle gradlew
 #################################################
 
 complete -F _man dash
+
+_git_logg ()
+{
+	_git_log
+}
+
+_git_kill_branch ()
+{
+	_git_branch
+}
