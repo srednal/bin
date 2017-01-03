@@ -155,6 +155,7 @@ function gradle {
 #########################################################
 # Local additions
 
-[ -f ${HOME}/.bashrc-local ] && . ${HOME}/.bashrc-local
+if [ -f ${HOME}/.bashrc-local ]; then
+  . ${HOME}/.bashrc-local
+fi
 
-#
