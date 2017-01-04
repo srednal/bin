@@ -6,4 +6,4 @@
 
 branch=${1:-}
 
-git logg $(git last-tag ${branch})..${branch}
+git lds $(git last-tag ${branch})..${branch}
