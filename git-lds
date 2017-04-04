@@ -1,2 +1,2 @@
 #!/bin/bash
-git log --pretty=format:'%h %cd %s [%an]' --date=short  "${@}"
+git log --pretty=format:'%h %cd %s [%cn]' --date=short  "${@}"
