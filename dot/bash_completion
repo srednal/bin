@@ -21,7 +21,7 @@ _gradle()
         # echo "indexing..."
         local gradle_cmd='gradle'
         [ -f ./gradlew ] && gradle_cmd='./gradlew'
-        commands=$($gradle_cmd --offline --no-color --quiet tasks --all | sed -n -e 's/^ *\([a-z][^ ]*\)\( .*\)\{0,1\}$/\1/p') 
+        commands=$($gradle_cmd --offline --no-color --quiet tasks --all | sed -n -e 's/^ *\([a-z][^ ]*\)\( .*\)\{0,1\}$/\1/p')
         [ -z "$commands" ] || echo $commands >> $cache_dir/$gradle_file_checksum
     fi
 
@@ -46,3 +46,20 @@ _git_kill_branch ()
 {
 	_git_branch
 }
+
+
+######
+
+_i2cssh () {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    words="app.prod achilles.prod achilles.stage api.prod argus.prod argus.stage cassandra.prod cassandra.stage \
+          consumer.prod consumer.stage giraffe.prod giraffe.stage guzzle.prod guzzle.stage hermes.prod hermes.stage \
+          kafka.prod kafka.stage landingpad.prod landingpad.stage mysql.prod mysql.stage sessions.prod sessions.stage \
+          siren.prod siren.stage zookeeper.prod zookeeper.stage"
+    COMPREPLY=( $(compgen -W "${words}" -- ${cur}) )
+    return 0
+}
+complete -F _i2cssh i2cssh

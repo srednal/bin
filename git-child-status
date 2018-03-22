@@ -1,2 +1,15 @@
 #!/bin/sh
-git child status --short --branch
+ # git child status --short --branch
+
+# Simple child dir scan, execute git status --short --branch in each subdir,
+# filter out repos with no changes sitting at master
+for d in *; do
+    if [ -d  $d -a -d $d/.git ]; then
+        pushd $d > /dev/null
+        if [ "$(git status --short --branch)" != "## master...origin/master" ]; then
+          echo "==================> In ${d}: "
+          git status --short --branch
+        fi
+        popd > /dev/null
+    fi
+done

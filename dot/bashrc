@@ -141,7 +141,7 @@ function jdk() {
     [ -z "$_v" ] || export JAVA_HOME=`/usr/libexec/java_home -v $_v`
     [ $_q = 1 ] || java -version
 }
-jdk -q 1.8
+jdk -q 8
 
 
 function gradle {
@@ -159,3 +159,6 @@ if [ -f ${HOME}/.bashrc-local ]; then
   . ${HOME}/.bashrc-local
 fi
 
+
+# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
+export PATH="$PATH:$HOME/.rvm/bin"

@@ -11,4 +11,5 @@
 # --all include all refs
 # --first-parent only show the stuff directly committed or merged into this branch (not commits going into a merge)
 
-git log --graph --pretty=format:'%C(yellow)%h%x09%d%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset' --abbrev-commit --date-order "${@}"
+git --no-pager log -n 20 --graph --pretty=format:'%C(yellow)%h%x09%d%Creset %s %Cgreen(%cr) %C(red)<%an>%Creset' --abbrev-commit --date-order "${@}"
+echo

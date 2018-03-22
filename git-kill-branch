@@ -4,6 +4,10 @@
 
 for branch in "${@}"; do
 
-  git branch --delete ${branch} && git push --delete origin ${branch}
+  git branch --delete ${branch} && \
+  git push --delete origin ${branch} && \
+  git branch --delete --remote origin/${branch}
 
 done
+
+git remote prune origin
