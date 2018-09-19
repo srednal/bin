@@ -55,11 +55,19 @@ _i2cssh () {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    words="app.prod achilles.prod achilles.stage api.prod argus.prod argus.stage cassandra.prod cassandra.stage \
-          consumer.prod consumer.stage giraffe.prod giraffe.stage guzzle.prod guzzle.stage hermes.prod hermes.stage \
-          kafka.prod kafka.stage landingpad.prod landingpad.stage mysql.prod mysql.stage sessions.prod sessions.stage \
-          siren.prod siren.stage zookeeper.prod zookeeper.stage"
+    words="$(sed -En 's/^ *([a-z]+\.(prod|stage|cloudbackup)):$/\1/p' ${HOME}/.i2csshrc)"
     COMPREPLY=( $(compgen -W "${words}" -- ${cur}) )
     return 0
 }
 complete -F _i2cssh i2cssh
+
+_csshX () {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    words="$(sed -En 's/^ *clusters *=*(.*)$/\1/p' ${HOME}/.csshrc)"
+    COMPREPLY=( $(compgen -W "${words}" -- ${cur}) )
+    return 0
+}
+complete -F _csshX csshX
