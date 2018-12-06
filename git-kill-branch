@@ -1,10 +1,16 @@
 #!/bin/bash
 #
 # Delete the branch and its remote counterpart
+if [ "$1" = "-D" ]; then
+  DELARG="-D"
+  shift
+else
+  DELARG="-d"
+fi
 
 for branch in "${@}"; do
 
-  git branch --delete ${branch} && \
+  git branch $DELARG ${branch} && \
   git push --delete origin ${branch} && \
   git branch --delete --remote origin/${branch}
 

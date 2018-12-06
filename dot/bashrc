@@ -40,8 +40,10 @@ export CLASSPATH=.
 if [ -n "$PS1" ]; then
 
     # Set up bash completion
-    if [ -f $(brew --prefix)/etc/bash_completion ]; then
-        . $(brew --prefix)/etc/bash_completion
+    if type -t brew >/dev/null ; then
+      if [ -f $(brew --prefix)/etc/bash_completion ]; then
+          . $(brew --prefix)/etc/bash_completion
+      fi
     fi
     #    . ${HOME}/.bash_completion
 
@@ -128,17 +130,36 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 function jdk() {
     # -q means quiet, else runs java -version after setting
     local _q=0
-    if [ "$1" == '-q' ]; then
-        _q=1
-        shift
+    local _o=0
+    local _v=""
+    while [ $# -ne 0 ]; do
+      case $1 in
+        -q) # quietly
+          _q=1
+          shift
+          ;;
+        -o) # oracle
+          _o=1
+          shift
+          ;;
+        *)
+          _v="$1"
+          shift
+          ;;
+       esac
+    done
+    if [ -n "$_v" ]; then # if no version given, don't set anything (just do java -version)
+      if [ $_o = 1 -o ! -d /usr/local/OpenJDK ]; then # oracle, or openjdk not available
+        # allow shortcut jdk 7 meaning jdk 1.7.  versioning changed to omit the 1. starting from 9
+        if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then
+          _v="1.$_v"
+        fi
+        export JAVA_HOME=$(/usr/libexec/java_home -v $_v)
+      else
+        # https://adoptopenjdk.net
+        export JAVA_HOME=$(find /usr/local/OpenJDK -type d -depth 1 -name jdk${_v}\* -o -name jdk-${_v}\* | sort -Vr | head -1)/Contents/Home
+      fi
     fi
-    local _v="$@"
-    # allow shortcut jdk 7 meaning jdk 1.7
-    if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then
-        _v="1.$_v"
-    fi
-    # if no version given, don't set anything (just do java -version)
-    [ -z "$_v" ] || export JAVA_HOME=`/usr/libexec/java_home -v $_v`
     [ $_q = 1 ] || java -version
 }
 jdk -q 8
@@ -161,4 +182,6 @@ fi
 
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-[ -d "$HOME/.rvm/bin" ] && export PATH="$PATH:$HOME/.rvm/bin"
+if [ -d "$HOME/.rvm/bin" ]; then
+  export PATH="$PATH:$HOME/.rvm/bin"
+fi
