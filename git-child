@@ -7,7 +7,7 @@ fi
 
 # Simple child dir scan, execute git $@ in each subdir
 for d in *; do
-    if [ -d  $d -a -d $d/.git ]; then
+    if [ -d $d -a -d $d/.git ]; then
         pushd $d > /dev/null
         echo "==================> In ${d}: "
         git "$@"

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]; then
+  echo "Usage: git-new some-new-branch"
+  exit 1
+fi
+
+# am I branching from master?
+if [ "$(git symbolic-ref HEAD | sed -e 's,^refs/heads/,,')" != "master" ]; then
+  echo
+  echo "Hey, you're not on master"
+  echo
+  tput bel
+  exit 1
+fi
+
+# create it, go there
+git checkout -b ${1}

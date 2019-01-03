@@ -1,0 +1,13 @@
+#!/bin/bash
+
+thisScript=$(basename "${BASH_SOURCE[0]}")
+
+# take all the files in CWD (except this one) and link to them from ${HOME}/.<filename>
+
+for dotfile in ${PWD}/*; do
+  if [ "${dotfile}" != "${thisScript}" ]; then
+
+    echo ln -s ${dotfile} ${HOME}/.$(basename ${dotfile})
+
+  fi
+done
