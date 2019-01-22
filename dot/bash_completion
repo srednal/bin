@@ -55,7 +55,8 @@ _i2cssh () {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    words="$(sed -En 's/^ *([a-z]+\.(prod|stage|cloudbackup)):$/\1/p' ${HOME}/.i2csshrc)"
+    # brew install shyaml
+    words="$(cat ${HOME}/.i2csshrc | shyaml keys clusters)"
     COMPREPLY=( $(compgen -W "${words}" -- ${cur}) )
     return 0
 }

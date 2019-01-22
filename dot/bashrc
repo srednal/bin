@@ -126,11 +126,13 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 ################################################################
 # Build / SCM settings
 
-# java
+# java, as in
+# brew tap adoptopenjdk/openjdk
+# brew cask install adoptopenjdk8
+# will install into /Library/Java/JavaVirtualMachines/adoptopenjdk-*
 function jdk() {
     # -q means quiet, else runs java -version after setting
     local _q=0
-    local _o=0
     local _v=""
     while [ $# -ne 0 ]; do
       case $1 in
@@ -138,8 +140,8 @@ function jdk() {
           _q=1
           shift
           ;;
-        -o) # oracle
-          _o=1
+        -l) # list em
+          /usr/libexec/java_home -V
           shift
           ;;
         *)
@@ -149,16 +151,10 @@ function jdk() {
        esac
     done
     if [ -n "$_v" ]; then # if no version given, don't set anything (just do java -version)
-      if [ $_o = 1 -o ! -d /usr/local/OpenJDK ]; then # oracle, or openjdk not available
-        # allow shortcut jdk 7 meaning jdk 1.7.  versioning changed to omit the 1. starting from 9
-        if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then
-          _v="1.$_v"
-        fi
-        export JAVA_HOME=$(/usr/libexec/java_home -v $_v)
-      else
-        # https://adoptopenjdk.net
-        export JAVA_HOME=$(find /usr/local/OpenJDK -type d -depth 1 -name jdk${_v}\* -o -name jdk-${_v}\* | sort -Vr | head -1)/Contents/Home
+      if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then # allow shortcut jdk 8 meaning jdk 1.8.  versioning omits the 1.x starting w/9
+        _v="1.$_v"
       fi
+      export JAVA_HOME=$(/usr/libexec/java_home -v $_v)
     fi
     [ $_q = 1 ] || java -version
 }
