@@ -50,12 +50,12 @@ _git_kill_branch ()
 
 ######
 
+# brew install shyaml
 _i2cssh () {
     local cur prev opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    # brew install shyaml
     words="$(cat ${HOME}/.i2csshrc | shyaml keys clusters)"
     COMPREPLY=( $(compgen -W "${words}" -- ${cur}) )
     return 0

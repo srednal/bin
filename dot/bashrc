@@ -43,9 +43,12 @@ if [ -n "$PS1" ]; then
     if type -t brew >/dev/null ; then
       if [ -f $(brew --prefix)/etc/bash_completion ]; then
           . $(brew --prefix)/etc/bash_completion
+      else
+          . ${HOME}/.bash_completion
       fi
+    else
+      . ${HOME}/.bash_completion
     fi
-    #    . ${HOME}/.bash_completion
 
     # Prompt string: last part of directory, with red exit status if non-zero
     mk_prompt() {
