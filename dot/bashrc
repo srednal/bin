@@ -98,6 +98,7 @@ alias readme='less *[Rr][Ee][Aa][Dd]*[Mm][Ee]*'
 alias h=history
 
 function dash { open dash://man:"$*" ; }
+function xman { open x-man-page://$@ ; }
 
 # directory listings
 if [ `uname -s` = "Darwin" ]; then

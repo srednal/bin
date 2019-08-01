@@ -36,6 +36,7 @@ complete -F _gradle gradle gradlew
 #################################################
 
 complete -F _man dash
+complete -F _man xman
 
 _git_logg ()
 {
