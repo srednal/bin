@@ -1,14 +1,45 @@
 #!/bin/bash
 #
 # Delete the branch and its remote counterpart
-if [ "$1" = "-D" ]; then
-  DELARG="-D"
-  shift
-else
-  DELARG="-d"
+
+DELARG='-d'
+branches=''
+while [[ $# -ne 0 ]]; do
+  case $1 in
+    -D)
+      DELARG='-D'
+      shift
+      ;;
+    -m | --merged)
+      cur=$(git branch --show-current)
+      branches=$(git branch --merged master --no-contains master --no-contains ${cur})
+      if [[ -z "${branches}" ]]; then
+        echo 'No merged branches in:'
+        git branch
+        exit
+      fi
+      shift
+      ;;
+    -*)
+      echo "Usage: $(basename ${0}) [-D] [-m | --merged | branch...]"
+      exit 1
+      ;;
+    *)
+      break
+      ;;
+  esac
+done
+
+if [[ -z "${branches}" ]]; then
+  branches="${@}"
 fi
 
-for branch in "${@}"; do
+if [[ -z "${branches}" ]]; then
+  echo 'Supply one of -m | --merged | branch...'
+  exit 1
+fi
+
+for branch in "${branches}"; do
 
   git branch $DELARG ${branch} && \
   git push --delete origin ${branch} && \
