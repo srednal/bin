@@ -1,0 +1,43 @@
+#!/bin/echo You must source me
+
+# Functions to wrap kubectl in kenv() to avoid accidentally running things in the wrong context
+
+# Override kubectl with a no-op/error
+# Can use 'command kubectl ...' to un-override this function
+function kubectl() {
+  echo "Use:"
+  echo "  kenv context_name ${@}"
+  echo "Or:"
+  echo "  command kubectl ${0}"
+  return 1
+}
+
+# Set current-context to $1, or clear it if $1 is unset or empty
+function kcontext() {
+  if [[ "${1}" != "" ]]; then
+    command kubectl config use-context "${1}"
+  else
+    command kubectl config unset current-context
+  fi
+}
+
+# Set the context to $1 and run kubectl with the remaining args
+# Reset the context when done
+function kenv() {
+  [[ ${#} > 0 ]] || { echo Usage: kenv context_name kubectl-args... ; return 1 ; }
+  local k_env="${1}"
+  shift
+  # fetch current context or '' if unset
+  local k_cur=$(command kubectl config current-context 2> /dev/null || echo '')
+  # set desired context, exit if error
+  kcontext "${k_env}"
+  [[ ${?} == 0 ]] || return ${?}
+  # run the command
+  command kubectl "${@}"
+  local k_err=${?}
+  # reset context
+  kcontext "${k_cur}"
+  # return with error status from kubectl
+  return ${k_err}
+}
+
