@@ -1,4 +1,7 @@
 # .bash_profile
+
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
 # Get environment from bashrc
 if [ -f ~/.bashrc ]; then
 	. ~/.bashrc
