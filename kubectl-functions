@@ -1,15 +1,15 @@
 #!/bin/echo You must source me
 
 # Functions to wrap kubectl in kenv() to avoid accidentally running things in the wrong context
+# . or source this script from .bashrc or whatever
 
-# Override kubectl with a no-op/error
-# Can use 'command kubectl ...' to un-override this function
+# Override kubectl with an error if current-context is prod
+# Should use kenv prod ... instead
 function kubectl() {
-  echo "Use:"
-  echo "  kenv context_name ${@}"
-  echo "Or:"
-  echo "  command kubectl ${0}"
-  return 1
+  # fetch current context
+  local k_cur=$(command kubectl config current-context 2> /dev/null || echo '')
+  [[ "${k_cur}" == "prod" ]] && { echo "Use: kenv ${k_cur} ${@}" ; return 1 ; }
+  command kubectl "${@}"
 }
 
 # Set current-context to $1, or clear it if $1 is unset or empty
@@ -40,4 +40,3 @@ function kenv() {
   # return with error status from kubectl
   return ${k_err}
 }
-
