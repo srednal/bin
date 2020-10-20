@@ -27,16 +27,6 @@ function kenv() {
   [[ ${#} > 0 ]] || { echo Usage: kenv context_name kubectl-args... ; return 1 ; }
   local k_env="${1}"
   shift
-  # fetch current context or '' if unset
-  local k_cur=$(command kubectl config current-context 2> /dev/null || echo '')
-  # set desired context, exit if error
-  kcontext "${k_env}"
-  [[ ${?} == 0 ]] || return ${?}
-  # run the command
-  command kubectl "${@}"
-  local k_err=${?}
-  # reset context
-  kcontext "${k_cur}"
-  # return with error status from kubectl
-  return ${k_err}
+  # run the command with given context
+  command kubectl --context="${k_env}" "${@}"
 }
