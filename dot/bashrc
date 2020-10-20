@@ -22,6 +22,9 @@ function _topath {
 _topath /usr/bin /bin /usr/sbin /sbin
 _topath /usr/local/bin /opt/X11/bin
 
+# brew installed ruby
+_topath /usr/local/opt/ruby/bin/ /usr/local/lib/ruby/gems/2.7.0/bin/
+
 # these always go at the head (before installed stuff)
 PATH=${HOME}/bin:${HOME}/dev/srednal/bin:${PATH}
 
@@ -162,7 +165,7 @@ function jdk() {
     fi
     [ $_q = 1 ] || java -version
 }
-jdk -q 8
+jdk -q 11
 
 
 function gradle {
