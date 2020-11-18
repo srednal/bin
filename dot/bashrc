@@ -139,6 +139,7 @@ function uzdir { n=`basename ${1}.dir` ; mkdir $n ; unzip -d $n $1 ; }
 # will install into /Library/Java/JavaVirtualMachines/adoptopenjdk-*
 function jdk() {
     # -q means quiet, else runs java -version after setting
+    # -l means list
     local _q=0
     local _v=""
     while [ $# -ne 0 ]; do
@@ -164,6 +165,9 @@ function jdk() {
       export JAVA_HOME=$(/usr/libexec/java_home -v $_v)
     fi
     [ $_q = 1 ] || java -version
+}
+function jdks {
+  jdk -l
 }
 jdk -q 11
 
