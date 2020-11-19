@@ -169,8 +169,7 @@ function jdk() {
 function jdks {
   jdk -l
 }
-jdk -q 11
-
+jdk -q 11 2>/dev/null
 
 function gradle {
   if [ -x './gradlew' ]; then
