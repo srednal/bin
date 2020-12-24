@@ -162,6 +162,8 @@ function jdk() {
       if [ "$_v" = 6 -o "$_v" = 7 -o "$_v" = 8 ]; then # allow shortcut jdk 8 meaning jdk 1.8.  versioning omits the 1.x starting w/9
         _v="1.$_v"
       fi
+      # MacOS Big Sur java_home is broken - must unset JAVA_HOME
+      unset JAVA_HOME
       export JAVA_HOME=$(/usr/libexec/java_home -v $_v)
     fi
     [ $_q = 1 ] || java -version
