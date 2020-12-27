@@ -1,0 +1,16 @@
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+
+mkdir -p dev/srednal
+git clone https://github.com/srednal/bin.git
+
+Mimestream - https://mimestream.com/download
+
+filezilla
+
+Garmin BaseCamp
+Purchased garmin maps - MapManager
+
+
+sd card reader
+usb3-a dongle

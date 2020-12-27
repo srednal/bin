@@ -1,0 +1,13 @@
+adoptopenjdk
+atom
+calibre
+fluid
+font-source-code-pro
+google-chrome
+google-drive-file-stream
+handbrake
+intellij-idea-ce
+iterm2
+libreoffice
+stats
+zoom
