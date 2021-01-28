@@ -3,7 +3,6 @@
 # get standard system stuff
 [ -f /etc/bashrc ] && . /etc/bashrc
 
-
 # Path manipulation
 
 # test if in path
@@ -27,8 +26,12 @@ function _pathhead {
   fi
 }
 
+# homebrew (/usr/local on intel, /opt/homebrew on apple silicon)
+[[ -r /usr/local/bin/brew ]] && eval $(/usr/local/bin/brew shellenv)
+[[ -r /opt/homebrew/bin/brew ]] && eval $(/opt/homebrew/bin/brew shellenv)
+
 # brew installed ruby
-_pathhead /usr/local/opt/ruby/bin/ /usr/local/lib/ruby/gems/3.0.0/bin/ /usr/local/lib/ruby/gems/2.7.0/bin/
+_pathhead ${HOMEBREW_PREFIX}/opt/ruby/bin/ ${HOMEBREW_PREFIX}/lib/ruby/gems/3.0.0/bin/ ${HOMEBREW_PREFIX}/lib/ruby/gems/2.7.0/bin/
 
 _pathadd /usr/bin /bin /usr/sbin /sbin /usr/local/bin /opt/X11/bin
 
@@ -37,7 +40,7 @@ _pathhead ${HOME}/bin ${HOME}/dev/srednal/bin
 
 export PATH
 
-MANPATH=/usr/share/man:/usr/local/share/man:/usr/X11/man:/usr/X11R6/share/man
+MANPATH=/usr/share/man:/usr/X11/man:/usr/X11R6/share/man
 MANPATH=${MANPATH}:/usr/local/git/share/man
 export MANPATH
 
