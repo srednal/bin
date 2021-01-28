@@ -40,7 +40,7 @@ _pathhead ${HOME}/bin ${HOME}/dev/srednal/bin
 
 export PATH
 
-MANPATH=/usr/share/man:/usr/X11/man:/usr/X11R6/share/man
+MANPATH=${MANPATH}:/usr/share/man:/usr/X11/man:/usr/X11R6/share/man
 MANPATH=${MANPATH}:/usr/local/git/share/man
 export MANPATH
 
