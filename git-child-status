@@ -1,15 +1,15 @@
 #!/bin/sh
  # git child status --short --branch
 
-# Simple child dir scan, execute git status --short --branch in each subdir,
-# filter out repos with no changes sitting at master
-for d in *; do
-    if [ -d  $d -a -d $d/.git ]; then
-        pushd $d > /dev/null
-        if [ "$(git status --short --branch)" != "## master...origin/master" ]; then
-          echo "==================> In ${d}: "
-          git status --short --branch
-        fi
-        popd > /dev/null
-    fi
-done
+if [ "${1}" = "--" ]; then
+  # run child-status here in the CWD
+  # Simple child dir scan, execute git status --short --branch in each subdir,
+  # filter out repos with no changes sitting at master
+  master=master
+  [ -f .git-child-master ] && master=$(cat .git-child-master)
+  if [ "$(git status --short --branch)" != "## ${master}...origin/${master}" ]; then
+    git status --short --branch
+  fi
+else
+  git-child child-status --
+fi

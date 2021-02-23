@@ -1,0 +1,25 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+    echo Usage: git foreach child-dir-list... -- git-cmd [args...]
+    exit 1
+fi
+
+dirs=""
+while [ "${1}" != "--" ]; do
+  dirs="${dirs} ${1}"
+  shift
+done
+shift
+
+# Simple child dir scan, execute git $@ in each subdir
+for d in ${dirs}; do
+    if [ -d $d -a -d $d/.git ]; then
+        pushd $d > /dev/null
+        if [ -n "$(git "$@" 2>&1)" ]; then
+          echo "==================> In ${d}: "
+          git "$@"
+        fi
+        popd > /dev/null
+    fi
+done

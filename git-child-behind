@@ -2,23 +2,22 @@
 
 # things that are behind, needing deploy
 # need a tag, describe more than 1 behind (1 is going to be the snapshot version commit)
-
-for d in *; do
-    if [ -d  $d -a -d $d/.git ]; then
-        pushd $d > /dev/null
-
-        if git branch -a | grep -q origin/master; then
-          # git fetch
-          ver_behind=$(git describe --long --always --match 'v*' origin/master | sed -n -e 's/\(v[0-9][\.0-9]*\)-\([0-9][0-9]*\)-.*/\1 \2/p')
-          version=$(echo "${ver_behind}" | cut -d' ' -f1)
-          behind=$(echo "${ver_behind}" | cut -d' ' -f2)
-          if [ -n "${behind}" ]; then
-            if [ ${behind} -gt 1 ]; then
-              echo "==================> In ${d}: "
-              git lds $version..origin/master
-            fi
-          fi
+if [ "${1}" = "--" ]; then
+  if [ ! -f .git-child-no-versioned ]; then
+    master=master
+    [ -f .git-child-master ] && master=$(cat .git-child-master)
+    if git branch -a | grep -q origin/${master}; then
+      # git fetch
+      ver_behind=$(git describe --long --always --match 'v*' origin/${master} | sed -n -e 's/\(v[0-9][\.0-9]*\)-\([0-9][0-9]*\)-.*/\1 \2/p')
+      version=$(echo "${ver_behind}" | cut -d' ' -f1)
+      behind=$(echo "${ver_behind}" | cut -d' ' -f2)
+      if [ -n "${behind}" ]; then
+        if [ ${behind} -gt 1 ]; then
+          git logg $version..origin/${master}
         fi
-        popd > /dev/null
+      fi
     fi
-done
+  fi
+else
+  git-child child-behind --
+fi
